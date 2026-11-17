@@ -84,7 +84,7 @@ What these numbers do and do not show:
   (+1.13, 95% interval +0.48 to +2.13). On ClipShots and RAI the intervals include zero:
   that is parity, not a win. TransNet V2's published RAI number is above ours.
 - The BBC lead shrinks to +0.33 if TransNet V2's threshold is tuned on the test set.
-- The BBC lead depends on the hand labels in [`labels/`](labels/README.md). Trained without
+- The BBC lead depends on the hand labels in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md). Trained without
   them, the model scores 95.4 on BBC, 80.0 on ClipShots and 93.2 on RAI (mean of 3 seeds).
 - The test sets were looked at during development. No benchmark here was unseen.
 
@@ -98,7 +98,7 @@ than the 40x reduction in operations. No CUDA timing has been measured.
 The package ships one set of weights (2 MB, sha256 `091853e5b35fbfd4…`, research run
 `seqnet_v24_seed2`). It was trained on synthetic transitions built from single-shot
 skateboarding clips, ClipShots training videos, and 1,245 hand labels on skateboarding videos.
-The hand labels are in [`labels/`](labels/README.md), as YouTube ids and frame indices. The
+The hand labels are in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md), as YouTube ids and frame indices. The
 clips behind the synthetic transitions are not released.
 
 The paper trains the model five times from different random seeds and reports the mean. The
@@ -119,17 +119,17 @@ the same output as a single pass.
 
 ## Labels
 
-[`labels/`](labels/README.md) holds the 1,245 hand labels (cuts, fades and confirmed
+[`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md) holds the 1,245 hand labels (cuts, fades and confirmed
 non-transitions on 466 skateboarding videos) the model was trained on.
 
 ## Browser demo
 
-[`demo/`](demo/README.md) runs the same model in a browser tab with ONNX Runtime Web: drop a
+[`demo/`](https://github.com/lucasjacks0n/LeanScene/blob/main/demo/README.md) runs the same model in a browser tab with ONNX Runtime Web: drop a
 video on the page and it shows the transitions on a timeline. Nothing is uploaded.
 
 ## Reproducing the numbers
 
-[`eval/`](eval/README.md) scores the bundled weights on the three benchmarks with the
+[`eval/`](https://github.com/lucasjacks0n/LeanScene/blob/main/eval/README.md) scores the bundled weights on the three benchmarks with the
 paper's protocol.
 
 ## Limits
@@ -164,6 +164,6 @@ above recreate it. The `export` extra is only needed for `demo/export_onnx.py`.
 
 ## Licence
 
-- Code and model weights: MIT, see [LICENSE](LICENSE). `eval/evaluate.py` contains two functions
+- Code and model weights: MIT, see [LICENSE](https://github.com/lucasjacks0n/LeanScene/blob/main/LICENSE). `eval/evaluate.py` contains two functions
   adapted from [TransNet V2](https://github.com/soCzech/TransNetV2) (MIT).
-- The labels in [`labels/`](labels/README.md): [CC BY 4.0](labels/LICENSE). Use them freely, with credit.
+- The labels in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md): [CC BY 4.0](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/LICENSE). Use them freely, with credit.

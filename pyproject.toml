@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leanscene"
-version = "0.1.0"
+version = "0.1.1"
 description = "A 0.5M-parameter network for fast shot transition detection in video"
 readme = "README.md"
 license = "MIT"
