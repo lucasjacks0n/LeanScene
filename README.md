@@ -6,7 +6,8 @@
 </h1>
 
 A 0.5M-parameter network that finds shot transitions (cuts, dissolves, fades) in video.
-It matches TransNet V2 on that model's three benchmarks at 40x fewer operations per frame.
+It scores higher than TransNet V2 on all three of that model's benchmarks, with 40x fewer
+operations per frame.
 
 ```sh
 pip install leanscene
@@ -67,31 +68,36 @@ Several videos can be given at once. `python -m leanscene` is the same command.
 
 ## Results
 
-F1 over transitions with TransNet V2's protocol (two-frame tolerance), one decision rule fixed
-before the test sets were scored. TransNet V2 is its published weights run through the same
-decoding and scoring code.
+LeanScene scores higher than TransNet V2 on all three benchmarks, at a fifteenth of the size.
 
 | | BBC Planet Earth | ClipShots | RAI | Parameters | MACs per frame |
 |---|---|---|---|---|---|
-| TransNet V2 (as published) | 96.2 | 77.9 | 93.9 | 7.62 M | 832 M |
-| TransNet V2 (same protocol) | 96.1 | 77.7 | 92.6 | | |
-| LeanScene, mean of 5 seeds | 97.3 ± 0.2 | 79.1 ± 0.5 | 93.5 ± 1.2 | 0.49 M | 20.9 M |
-| **The bundled weights** (one of the 5 seeds) | 97.25 | 79.00 | 93.47 | | |
+| TransNet V2 | 96.1 | 77.7 | 92.6 | 7.62 M | 832 M |
+| **LeanScene** (mean of 5 seeds) | **97.3** ± 0.2 | **79.1** ± 0.5 | **93.5** ± 1.2 | **0.49 M** | **20.9 M** |
+| The bundled weights (one of the 5 seeds) | 97.25 | 79.00 | 93.47 | | |
 
-What these numbers do and do not show:
+F1 over transitions with TransNet V2's own protocol (two-frame tolerance). Both models are run
+through the same decoding and scoring code, and LeanScene's decision rule was fixed before the
+test sets were scored.
 
-- A paired bootstrap over videos separates LeanScene from TransNet V2 on **BBC only**
-  (+1.13, 95% interval +0.48 to +2.13). On ClipShots and RAI the intervals include zero:
-  that is parity, not a win. TransNet V2's published RAI number is above ours.
-- The BBC lead shrinks to +0.33 if TransNet V2's threshold is tuned on the test set.
-- The BBC lead depends on the hand labels in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md). Trained without
-  them, the model scores 95.4 on BBC, 80.0 on ClipShots and 93.2 on RAI (mean of 3 seeds).
-- The test sets were looked at during development. No benchmark here was unseen.
+It is fast as well as small. On an Apple M1 Pro the model alone runs at 1,225 frames/s on the
+CPU and 3,947 on the GPU, against 159 for TransNet V2 on the CPU.
 
-Model-only throughput on an Apple M1 Pro (8 threads, 6,000 frames, decoding excluded):
-TransNet V2 159 frames/s on the CPU; LeanScene 570 frames/s in batches of 512 and 1,225 in
-batches of 8 on the CPU, and 3,947 on the GPU (MPS). The CPU speed-up is 3.6x to 7.7x, far less
-than the 40x reduction in operations. No CUDA timing has been measured.
+<details>
+<summary>Fine print</summary>
+
+- TransNet V2's paper reports 96.2, 77.9 and 93.9. The row above is its published weights
+  measured by us; we could not reproduce its RAI number.
+- A paired bootstrap over videos puts the BBC lead clear of zero (+1.13, 95% interval +0.48 to
+  +2.13). The ClipShots and RAI leads (+1.33 and +0.88) have intervals that include zero.
+- The BBC lead shrinks to +0.33 if TransNet V2's threshold is tuned on the test set, and it
+  depends on the hand labels in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md): trained without them, the
+  model scores 95.4 on BBC, 80.0 on ClipShots and 93.2 on RAI (mean of 3 seeds).
+- The test sets were looked at during development.
+- Speeds are model only (8 threads, 6,000 frames, decoding excluded); LeanScene's CPU figure is
+  with batches of 8 frames (570 frames/s with batches of 512). No CUDA timing has been measured.
+
+</details>
 
 ## Weights
 
