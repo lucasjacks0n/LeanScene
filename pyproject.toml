@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "leanscene"
 version = "0.1.1"
-description = "Fast shot transition detection in 0.5M parameters: higher F1 than TransNet V2 on its three benchmarks, with 40x fewer operations"
+description = "Fast shot transition detection in 0.4M parameters: higher F1 than TransNet V2 on its three benchmarks, with 115x fewer operations"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

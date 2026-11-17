@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from importlib import resources
-from typing import Iterable, Iterator, Optional, Union
+from typing import Callable, Iterable, Iterator, Optional, Union
 
 import cv2
 import numpy as np
@@ -74,13 +74,14 @@ def _frames(source: Source) -> Iterator[np.ndarray]:
 
 @torch.inference_mode()
 def frame_probs(source: Source, model: Optional[LeanScene] = None, device=None, batch: Optional[int] = None,
-                window: int = 4096) -> np.ndarray:
+                window: int = 4096, progress: Optional[Callable[[int], None]] = None) -> np.ndarray:
     """Per-frame probabilities of same / cut / fade, as a float32 array of shape (frames, 3).
 
     source: a video path, or an iterable of HxWx3 uint8 frames in BGR order (OpenCV's).
     The video is streamed: frames are encoded in batches of `batch` and the temporal head runs
     over `window` frames at a time with more context on each side than its receptive field, so
     memory stays flat on long videos and the result equals a single pass up to float rounding.
+    progress: called with the number of frames read so far, after each batch.
     """
     if model is None:
         model = load_model(device=device)
@@ -95,13 +96,17 @@ def frame_probs(source: Source, model: Optional[LeanScene] = None, device=None, 
 
     out: list[np.ndarray] = []
     chunks: list[torch.Tensor] = []  # features not yet labelled; the first `done` rows are left context
-    held, done = 0, 0
+    held, done, seen = 0, 0, 0
 
     def encode(frames: list[np.ndarray]) -> None:
         nonlocal held
         x = torch.from_numpy(np.stack(frames)).to(dev).permute(0, 3, 1, 2).float().div_(255)
         chunks.append(model.frame_features(x))
         held += len(frames)
+        if progress is not None:
+            nonlocal seen
+            seen += len(frames)
+            progress(seen)
 
     def label(final: bool) -> None:
         nonlocal chunks, held, done
@@ -210,14 +215,16 @@ def _fps(path) -> Optional[float]:
 
 
 def detect(source: Source, model: Optional[LeanScene] = None, device=None, cut: float = CUT_THRESHOLD,
-           fade: float = FADE_THRESHOLD, close: int = FADE_CLOSE, batch: Optional[int] = None) -> Result:
+           fade: float = FADE_THRESHOLD, close: int = FADE_CLOSE, batch: Optional[int] = None,
+           progress: Optional[Callable[[int], None]] = None) -> Result:
     """Find the shot transitions of a video.
 
     source: a video path, or an iterable of HxWx3 uint8 BGR frames.
     model: a loaded model to reuse across videos (load_model()); loaded on each call otherwise.
     cut, fade: probability thresholds. Raise them for fewer false alarms, lower them to miss less.
+    progress: called with the number of frames read so far, after each batch.
     """
-    probs = frame_probs(source, model=model, device=device, batch=batch)
+    probs = frame_probs(source, model=model, device=device, batch=batch, progress=progress)
     transitions = find_transitions(label_frames(probs, cut, fade, close))
     fps = _fps(source) if isinstance(source, (str, os.PathLike)) else None
     return Result(len(probs), fps, transitions, find_shots(transitions, len(probs)), probs)

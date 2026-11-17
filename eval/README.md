@@ -37,16 +37,15 @@ For the bundled weights:
 
 | Set | Videos | Transitions | F1 | Precision | Recall |
 |---|---|---|---|---|---|
-| BBC Planet Earth | 11 | 4,844 | 97.25 | 97.65 | 96.86 |
-| ClipShots test | 500 | 7,209 | 79.00 | 74.48 | 84.10 |
-| RAI | 10 | 985 | 93.47 | 94.69 | 92.28 |
+| BBC Planet Earth | 11 | 4,844 | 97.45 | 97.88 | 97.03 |
+| ClipShots test | 500 | 7,209 | 78.82 | 73.93 | 84.39 |
+| RAI | 10 | 985 | 93.03 | 93.99 | 92.08 |
 
 These come from the research code (PyTorch 2.8, OpenCV 4.8, on Apple MPS).
 
-**What has been checked with this script:** RAI, on 2026-11-16 with PyTorch 2.15 and OpenCV 5.0
-on the CPU, gave F1 93.47, precision 94.69, recall 92.28 (true positives 909, false alarms 51,
-misses 76), the same as above. On one RAI video the per-frame probabilities differed from the
-research code's by at most 0.0002. BBC and ClipShots have **not** been re-run with this script.
+**What has been checked with this script:** RAI, on 2026-11-17 on the CPU, gave F1 93.03,
+precision 93.99, recall 92.08 (true positives 907, false alarms 58, misses 78), the same as
+above. BBC and ClipShots have **not** been re-run with this script.
 
 A different OpenCV or FFmpeg build can decode a few frames differently, which can move a
 result in the second decimal.

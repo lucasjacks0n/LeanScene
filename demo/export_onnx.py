@@ -2,7 +2,7 @@
 
     python demo/export_onnx.py [checkpoint.pt]
 
-Needs the export extras: pip install -e ".[export]". Writes demo/model.js (about 2.7 MB): two
+Needs the export extras: pip install -e ".[export]". Writes demo/model.js (about 2.1 MB): two
 ONNX graphs, base64 in a script file, so the page also works opened straight from disk
 (file://), where fetch() of a model file is blocked.
 

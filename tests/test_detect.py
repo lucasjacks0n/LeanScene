@@ -33,7 +33,7 @@ def model():
 @pytest.mark.parametrize("name", sorted(leanscene.MODELS))
 def test_bundled_weights_load(name):
     m = leanscene.load_model(name, device="cpu")
-    assert sum(p.numel() for p in m.parameters()) == 489_243  # the paper's parameter count
+    assert sum(p.numel() for p in m.parameters()) == 394_575  # the paper's half-width model
     assert m.receptive_field == 63
 
 
@@ -91,3 +91,9 @@ def test_cli_on_a_video_file(tmp_path, capsys):
     assert "3 shots" in capsys.readouterr().out
     assert main([str(tmp_path / "missing.mp4")]) == 1
     assert "no such file" in capsys.readouterr().err
+
+
+def test_progress_reports_every_frame(model):
+    seen = []
+    r = leanscene.detect(video(), model=model, progress=seen.append)
+    assert seen == sorted(seen) and seen[-1] == r.frames == 130
