@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeanScene demo</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJMZWFuU2NlbmUiPjx0aXRsZT5MZWFuU2NlbmU8L3RpdGxlPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiByeD0iMjIiIGZpbGw9IiMxMTExMTEiLz48cGF0aCBkPSJNMTYuNjYgMzcuNzRWOTJINTIuMjNWODcuNTlIMjEuODNWMzcuNzRaTTc5LjM4IDczLjk5SDY3LjgyUTY3Ljc1IDc5IDY5LjY1IDgyLjY1UTcxLjU1IDg2LjMgNzQuNzggODguNjZRNzguMDEgOTEuMDEgODIuMjMgOTIuMTFRODYuNDQgOTMuMjIgOTAuOTMgOTMuMjJROTYuNDggOTMuMjIgMTAwLjY5IDkxLjkyUTEwNC45MSA5MC42MyAxMDcuNzYgODguMzFRMTEwLjYxIDg2IDExMi4wNiA4Mi44UTExMy41IDc5LjYxIDExMy41IDc1Ljg5UTExMy41IDcxLjMzIDExMS41NiA2OC40UTEwOS42MiA2NS40OCAxMDYuOTYgNjMuNzNRMTA0LjMgNjEuOTggMTAxLjYxIDYxLjE4UTk4LjkxIDYwLjM4IDk3LjM5IDYwLjA4UTkyLjMgNTguNzkgODkuMTQgNTcuOTVRODUuOTkgNTcuMTIgODQuMiA1Ni4yOFE4Mi40MiA1NS40NCA4MS44MSA1NC40NlE4MS4yIDUzLjQ3IDgxLjIgNTEuODdRODEuMiA1MC4xMiA4MS45NiA0OC45OFE4Mi43MiA0Ny44NCA4My45IDQ3LjA4UTg1LjA4IDQ2LjMyIDg2LjUyIDQ2LjAyUTg3Ljk2IDQ1LjcyIDg5LjQxIDQ1LjcyUTkxLjYxIDQ1LjcyIDkzLjQ3IDQ2LjFROTUuMzQgNDYuNDggOTYuNzggNDcuMzlROTguMjIgNDguMyA5OS4xIDQ5LjlROTkuOTcgNTEuNDkgMTAwLjEyIDUzLjkySDExMS42OFExMTEuNjggNDkuMjEgMTA5Ljg5IDQ1LjkxUTEwOC4xIDQyLjYgMTA1LjA2IDQwLjQ3UTEwMi4wMiAzOC4zNCA5OC4xMSAzNy4zOVE5NC4yIDM2LjQ0IDg5Ljk0IDM2LjQ0UTg2LjI5IDM2LjQ0IDgyLjY0IDM3LjQzUTc5IDM4LjQyIDc2LjExIDQwLjQ3UTczLjIyIDQyLjUyIDcxLjQzIDQ1LjZRNjkuNjUgNDguNjggNjkuNjUgNTIuODZRNjkuNjUgNTYuNTggNzEuMDUgNTkuMjFRNzIuNDYgNjEuODMgNzQuNzQgNjMuNThRNzcuMDIgNjUuMzIgNzkuOTEgNjYuNDNRODIuOCA2Ny41MyA4NS44NCA2OC4yOVE4OC44IDY5LjEyIDkxLjY5IDY5LjgxUTk0LjU4IDcwLjQ5IDk2Ljg2IDcxLjRROTkuMTQgNzIuMzIgMTAwLjU0IDczLjY4UTEwMS45NSA3NS4wNSAxMDEuOTUgNzcuMjZRMTAxLjk1IDc5LjMxIDEwMC44OCA4MC42NFE5OS44MiA4MS45NyA5OC4yMiA4Mi43M1E5Ni42MyA4My40OSA5NC44IDgzLjc1UTkyLjk4IDg0LjAyIDkxLjM4IDg0LjAyUTg5LjAzIDg0LjAyIDg2LjgyIDgzLjQ1UTg0LjYyIDgyLjg4IDgyLjk5IDgxLjdRODEuMzUgODAuNTIgODAuMzYgNzguNjJRNzkuMzggNzYuNzIgNzkuMzggNzMuOTlaIiBmaWxsPSIjZmZmZmZmIi8+PHBhdGggZD0iTTUwIDhoMThsLTkgMTQuNHoiIGZpbGw9IiNkOTQ4MGYiLz48cGF0aCBkPSJNNTkgMjZWMTA0IiBzdHJva2U9IiNkOTQ4MGYiIHN0cm9rZS13aWR0aD0iMyIvPjwvc3ZnPg==">
+<style>
+  :root { --bg:#f6f5f1; --panel:#fff; --ink:#1c1b19; --mute:#6b675f; --line:#dcd8cf; --cut:#d9480f; --fade:#1971c2; --accent:#1c1b19; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#151514; --panel:#1f1f1d; --ink:#ecebe6; --mute:#9a968c; --line:#34332f; --cut:#ff922b; --fade:#4dabf7; --accent:#ecebe6; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:28px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; letter-spacing:-0.01em; }
+  h1.logo { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin:0 0 10px; }
+  h1.logo svg { height:52px; width:auto; display:block; margin-left:-6px; }
+  /* the text sits on the image's bottom edge; the lettering's baseline is 21/92 of the image's height
+     above that, so the text is lifted by the same amount to share the lettering's baseline */
+  h1.logo span { font-size:15px; font-weight:500; color:var(--mute); letter-spacing:0; position:relative; top:-11.9px; }
+  h1.logo .d { display:none; }
+  @media (prefers-color-scheme: dark) { h1.logo .l { display:none; } h1.logo .d { display:block; } }
+  h2 { font-size:15px; margin:26px 0 10px; }
+  p { margin:0; }
+  .mute { color:var(--mute); }
+  #status { font-size:13px; }
+  #status.err, #error { color:var(--cut); }
+  #drop { display:block; margin:18px 0 0; padding:34px 16px; text-align:center; border:2px dashed var(--line); border-radius:12px; background:var(--panel); cursor:pointer; transition:border-color .15s; }
+  #drop.over { border-color:var(--accent); }
+  #drop.busy { opacity:.5; pointer-events:none; }
+  #drop strong { display:block; font-size:17px; margin-bottom:4px; }
+  #progress { margin-top:16px; display:flex; gap:14px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; }
+  #progress canvas { width:72px; height:72px; border-radius:6px; background:#000; flex:none; }
+  #progress > div { flex:1; min-width:0; }
+  progress { width:100%; height:10px; accent-color:var(--accent); }
+  #summary { display:flex; flex-wrap:wrap; gap:8px 26px; margin:18px 0 14px; }
+  #summary div { font-size:13px; color:var(--mute); }
+  #summary b { display:block; font-size:20px; color:var(--ink); font-variant-numeric:tabular-nums; }
+  video { width:100%; max-height:460px; background:#000; border-radius:10px; display:block; }
+  #strip { display:flex; margin-top:14px; border-radius:6px 6px 0 0; overflow:hidden; background:#000; }
+  #strip img { flex:1; min-width:0; width:0; aspect-ratio:16/9; object-fit:cover; display:block; font-size:0; }
+  #ovwrap { position:relative; background:var(--panel); border:1px solid var(--line); border-top:0; cursor:pointer; touch-action:none; }
+  #overview { display:block; width:100%; height:26px; }
+  #ovbox { position:absolute; top:0; bottom:0; min-width:6px; box-sizing:border-box; border:2px solid var(--accent); border-radius:3px; pointer-events:none; }
+  #ovhead { position:absolute; top:0; bottom:0; width:1px; background:var(--accent); opacity:.6; pointer-events:none; }
+  #tlwrap { position:relative; background:var(--panel); border:1px solid var(--line); border-top:0; border-radius:0 0 6px 6px; cursor:crosshair; overflow:hidden; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
+  #tlwrap.drag { cursor:grabbing; }
+  #timeline { display:block; width:100%; height:146px; }
+  #playhead { position:absolute; top:0; bottom:0; width:2px; background:var(--accent); pointer-events:none; left:0; }
+  #tip { position:absolute; top:4px; padding:2px 6px; font-size:12px; background:var(--accent); color:var(--bg); border-radius:4px; pointer-events:none; white-space:nowrap; transform:translateX(-50%); }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12px; color:var(--mute); margin-top:6px; }
+  .zoom { margin-left:auto; display:flex; gap:6px; align-items:center; font-variant-numeric:tabular-nums; }
+  .zoom button { padding:1px 9px; }
+  #zoominfo { margin-left:8px; }
+  .zoom button:disabled { opacity:.4; cursor:default; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  #cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; padding:0; text-align:left; color:inherit; font:inherit; }
+  .card:hover, .card:focus-visible, .card.on { border-color:var(--accent); outline:none; }
+  .card.on { box-shadow:0 0 0 1px var(--accent); }
+  .pair { display:flex; gap:2px; background:#000; }
+  .pair img { width:50%; aspect-ratio:16/9; object-fit:cover; display:block; background:#111; font-size:0; }
+  .cap { padding:7px 10px 9px; font-size:13px; display:flex; justify-content:space-between; gap:8px; font-variant-numeric:tabular-nums; }
+  .tag { font-weight:600; }
+  .tag.cut { color:var(--cut); } .tag.gradual { color:var(--fade); }
+  button.plain { font:inherit; font-size:13px; padding:5px 12px; border-radius:7px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .pair img.loading, #strip img.loading { background:linear-gradient(100deg, var(--line) 30%, var(--panel) 50%, var(--line) 70%) 0 0 / 200% 100%; animation:shimmer 1.2s linear infinite; }
+  @keyframes shimmer { to { background-position:-200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .pair img.loading, #strip img.loading { animation:none; } }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="logo"><svg class="l" xmlns="http://www.w3.org/2000/svg" viewBox="-0.0 6 298.0 92" role="img" aria-label="LeanScene"><title>LeanScene</title><path d="M9.97 44.16V77H31.5V74.33H13.1V44.16ZM35.67 44.16V77H58.58V74.33H38.8V61.36H57.11V58.69H38.8V46.82H58.35V44.16ZM68.59 64.12 75.17 47.28 81.52 64.12ZM73.56 44.16 60.36 77H63.67L67.63 66.79H82.58L86.58 77H89.94L77.06 44.16ZM93.88 44.16V77H97.01V49.22H97.1L116.24 77H119.73V44.16H116.61V71.94H116.51L97.38 44.16ZM144.1 66.1H137.1Q137.06 69.13 138.21 71.34Q139.36 73.55 141.31 74.98Q143.27 76.4 145.82 77.07Q148.37 77.74 151.09 77.74Q154.45 77.74 157 76.95Q159.55 76.17 161.28 74.77Q163 73.37 163.88 71.43Q164.75 69.5 164.75 67.25Q164.75 64.49 163.58 62.72Q162.4 60.95 160.79 59.89Q159.18 58.83 157.55 58.35Q155.92 57.86 155 57.68Q151.92 56.9 150.01 56.39Q148.1 55.89 147.02 55.38Q145.94 54.87 145.57 54.28Q145.2 53.68 145.2 52.71Q145.2 51.65 145.66 50.96Q146.12 50.27 146.83 49.81Q147.55 49.35 148.42 49.17Q149.29 48.99 150.17 48.99Q151.5 48.99 152.63 49.22Q153.76 49.45 154.63 50Q155.5 50.55 156.03 51.52Q156.56 52.48 156.65 53.95H163.65Q163.65 51.1 162.56 49.1Q161.48 47.1 159.64 45.81Q157.8 44.52 155.44 43.95Q153.07 43.37 150.49 43.37Q148.28 43.37 146.07 43.97Q143.87 44.57 142.12 45.81Q140.37 47.05 139.29 48.92Q138.21 50.78 138.21 53.31Q138.21 55.56 139.06 57.15Q139.91 58.74 141.29 59.8Q142.67 60.85 144.42 61.52Q146.17 62.19 148.01 62.65Q149.8 63.15 151.55 63.57Q153.3 63.98 154.68 64.53Q156.06 65.09 156.91 65.91Q157.76 66.74 157.76 68.08Q157.76 69.32 157.11 70.12Q156.47 70.93 155.5 71.39Q154.54 71.85 153.43 72.01Q152.33 72.17 151.36 72.17Q149.94 72.17 148.6 71.83Q147.27 71.48 146.28 70.77Q145.29 70.05 144.69 68.9Q144.1 67.75 144.1 66.1ZM189.92 55.2H196.92Q196.59 52.34 195.35 50.14Q194.11 47.93 192.2 46.43Q190.29 44.94 187.88 44.16Q185.46 43.37 182.75 43.37Q178.98 43.37 175.96 44.71Q172.95 46.04 170.88 48.39Q168.81 50.73 167.71 53.89Q166.6 57.04 166.6 60.72Q166.6 64.3 167.71 67.41Q168.81 70.51 170.88 72.81Q172.95 75.11 175.96 76.43Q178.98 77.74 182.75 77.74Q185.78 77.74 188.31 76.82Q190.84 75.9 192.73 74.15Q194.62 72.4 195.77 69.92Q196.92 67.43 197.19 64.35H190.2Q189.79 67.66 187.92 69.69Q186.06 71.71 182.75 71.71Q180.31 71.71 178.61 70.77Q176.91 69.82 175.85 68.26Q174.79 66.7 174.31 64.74Q173.82 62.79 173.82 60.72Q173.82 58.55 174.31 56.53Q174.79 54.51 175.85 52.92Q176.91 51.33 178.61 50.39Q180.31 49.45 182.75 49.45Q184.08 49.45 185.3 49.88Q186.52 50.32 187.49 51.1Q188.45 51.88 189.1 52.92Q189.74 53.95 189.92 55.2ZM201.11 44.16V77H226.05V70.93H208.34V62.88H224.25V57.27H208.34V50.23H225.68V44.16ZM229.92 44.16V77H236.68V55.01H236.78L250.44 77H257.66V44.16H250.9V66.19H250.81L237.1 44.16ZM263.01 44.16V77H287.94V70.93H270.23V62.88H286.15V57.27H270.23V50.23H287.57V44.16Z" fill="#111111"/><path d="M122 16h16l-8 12.8z" fill="#d9480f"/><path d="M130 34V88" stroke="#d9480f" stroke-width="2"/></svg><svg class="d" xmlns="http://www.w3.org/2000/svg" viewBox="9.4 6 288.5 92" role="img" aria-label="LeanScene"><title>LeanScene</title><path d="M39.5 76.08H20.32V44.16H19.4V77H39.5ZM43.44 76.08V60.35H63.09V59.43H43.44V45.08H64.33V44.16H42.52V77H64.51V76.08ZM70.62 66.19H87.36L91.69 77H92.7L79.73 44.16H78.53L65.24 77H66.25ZM86.99 65.27H70.99L79.08 45.08H79.17ZM95.68 44.16V77H96.6V45.31H96.69L119.14 77H120.52V44.16H119.6V75.85H119.5L97.06 44.16ZM144.1 66.1H137.1Q137.06 69.13 138.21 71.34Q139.36 73.55 141.31 74.98Q143.27 76.4 145.82 77.07Q148.37 77.74 151.09 77.74Q154.45 77.74 157 76.95Q159.55 76.17 161.28 74.77Q163 73.37 163.88 71.43Q164.75 69.5 164.75 67.25Q164.75 64.49 163.58 62.72Q162.4 60.95 160.79 59.89Q159.18 58.83 157.55 58.35Q155.92 57.86 155 57.68Q151.92 56.9 150.01 56.39Q148.1 55.89 147.02 55.38Q145.94 54.87 145.57 54.28Q145.2 53.68 145.2 52.71Q145.2 51.65 145.66 50.96Q146.12 50.27 146.83 49.81Q147.55 49.35 148.42 49.17Q149.29 48.99 150.17 48.99Q151.5 48.99 152.63 49.22Q153.76 49.45 154.63 50Q155.5 50.55 156.03 51.52Q156.56 52.48 156.65 53.95H163.65Q163.65 51.1 162.56 49.1Q161.48 47.1 159.64 45.81Q157.8 44.52 155.44 43.95Q153.07 43.37 150.49 43.37Q148.28 43.37 146.07 43.97Q143.87 44.57 142.12 45.81Q140.37 47.05 139.29 48.92Q138.21 50.78 138.21 53.31Q138.21 55.56 139.06 57.15Q139.91 58.74 141.29 59.8Q142.67 60.85 144.42 61.52Q146.17 62.19 148.01 62.65Q149.8 63.15 151.55 63.57Q153.3 63.98 154.68 64.53Q156.06 65.09 156.91 65.91Q157.76 66.74 157.76 68.08Q157.76 69.32 157.11 70.12Q156.47 70.93 155.5 71.39Q154.54 71.85 153.43 72.01Q152.33 72.17 151.36 72.17Q149.94 72.17 148.6 71.83Q147.27 71.48 146.28 70.77Q145.29 70.05 144.69 68.9Q144.1 67.75 144.1 66.1ZM189.92 55.2H196.92Q196.59 52.34 195.35 50.14Q194.11 47.93 192.2 46.43Q190.29 44.94 187.88 44.16Q185.46 43.37 182.75 43.37Q178.98 43.37 175.96 44.71Q172.95 46.04 170.88 48.39Q168.81 50.73 167.71 53.89Q166.6 57.04 166.6 60.72Q166.6 64.3 167.71 67.41Q168.81 70.51 170.88 72.81Q172.95 75.11 175.96 76.43Q178.98 77.74 182.75 77.74Q185.78 77.74 188.31 76.82Q190.84 75.9 192.73 74.15Q194.62 72.4 195.77 69.92Q196.92 67.43 197.19 64.35H190.2Q189.79 67.66 187.92 69.69Q186.06 71.71 182.75 71.71Q180.31 71.71 178.61 70.77Q176.91 69.82 175.85 68.26Q174.79 66.7 174.31 64.74Q173.82 62.79 173.82 60.72Q173.82 58.55 174.31 56.53Q174.79 54.51 175.85 52.92Q176.91 51.33 178.61 50.39Q180.31 49.45 182.75 49.45Q184.08 49.45 185.3 49.88Q186.52 50.32 187.49 51.1Q188.45 51.88 189.1 52.92Q189.74 53.95 189.92 55.2ZM201.11 44.16V77H226.05V70.93H208.34V62.88H224.25V57.27H208.34V50.23H225.68V44.16ZM229.92 44.16V77H236.68V55.01H236.78L250.44 77H257.66V44.16H250.9V66.19H250.81L237.1 44.16ZM263.01 44.16V77H287.94V70.93H270.23V62.88H286.15V57.27H270.23V50.23H287.57V44.16Z" fill="#ffffff"/><path d="M122 16h16l-8 12.8z" fill="#d9480f"/><path d="M130 34V88" stroke="#d9480f" stroke-width="2"/></svg><span>Shot transition demo</span></h1>
+  <p id="status" class="mute">Loading model…</p>
+
+  <label id="drop" class="busy">
+    <input type="file" id="file" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v" hidden>
+    <strong>Drop a video here</strong>
+    <span class="mute">or click to choose one (MP4 or MOV). It is processed in this tab and never uploaded.</span>
+  </label>
+  <p id="error" style="margin-top:10px" hidden></p>
+
+  <section id="progress" hidden>
+    <canvas id="live" width="100" height="100"></canvas>
+    <div>
+      <p id="ptext">Starting…</p>
+      <progress id="pbar" max="1" value="0"></progress>
+    </div>
+  </section>
+
+  <section id="results" hidden>
+    <div id="summary"></div>
+    <video id="player" controls muted playsinline></video>
+    <div id="strip"></div>
+    <div id="ovwrap"><canvas id="overview"></canvas><div id="ovbox"></div><div id="ovhead"></div></div>
+    <div id="tlwrap"><canvas id="timeline"></canvas><div id="playhead"></div><div id="tip" hidden></div></div>
+    <div class="legend">
+      <span><i style="background:var(--cut)"></i>cut probability</span>
+      <span><i style="background:var(--fade)"></i>fade / gradual probability</span>
+      <span>▼ detected transition</span>
+      <span>Click to jump; ← → step between transitions. Pinch or Ctrl/⌘ + scroll to zoom; drag or scroll sideways to move.</span>
+      <span class="zoom"><button class="plain" id="tprev" aria-label="Previous transition" title="Previous transition (←)">◀</button><button class="plain" id="tnext" aria-label="Next transition" title="Next transition (→)">▶</button><span id="zoominfo"></span><button class="plain" id="zout" aria-label="Zoom out">−</button><button class="plain" id="zin" aria-label="Zoom in">+</button><button class="plain" id="zfit">Fit</button></span>
+    </div>
+    <div class="row"><h2 id="cardsTitle">Transitions</h2><button class="plain" id="download">Download JSON</button></div>
+    <p class="mute" style="font-size:13px;margin:-4px 0 10px">Each card shows the last frame before the transition and the first frame after it. Click a card to play from the transition.</p>
+    <div id="cards"></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.webgpu.min.js"></script>
+<script src="model.js"></script>
+<script>
+"use strict";
+// LeanScene in the browser. Mirrors leanscene.frame_probs and leanscene.label_frames:
+// every frame is decoded (WebCodecs), resized to 100x100, and run through the CNN in batches;
+// the temporal head then labels each frame same / cut / fade, and the frozen rule
+// (cut >= 0.7, fade >= 0.8, fade runs closed over gaps of <= 8 frames) turns that into transitions.
+const $ = id => document.getElementById(id);
+const SIZE = 100, HW = SIZE * SIZE, BATCH = 64;
+const HEAD_WINDOW = 2048, HEAD_MARGIN = 64;  // the head sees 32 frames each way; 64 keeps windowed output identical
+const STRIP = 20, THUMB_W = 320;
+const HIST = 64;  // colour histogram bins; BIN maps a byte to its bin exactly as float32 (v/255)*(4-0.001) truncates
+const BIN = Uint8Array.from({ length: 256 }, (_, v) => Math.floor(Math.fround(Math.fround(v / 255) * Math.fround(3.999))));
+let featS, headS, META, EP, busy = false, result = null;
+
+// yield to the event loop without setTimeout's 4 ms minimum
+const tick = () => (self.scheduler && scheduler.yield) ? scheduler.yield() : new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); });
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const fmtTime = t => { const m = Math.floor(t / 60), s = t - m * 60; return m + ":" + (s < 10 ? "0" : "") + s.toFixed(2); };
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+async function loadModel() {
+  const st = $("status");
+  try {
+    if (!window.LEANSCENE) throw new Error("model.js is missing. Create it with: python demo/export_onnx.py");
+    if (!window.ort || !window.MP4Box) throw new Error("Could not load onnxruntime-web / mp4box from cdn.jsdelivr.net (needs an internet connection).");
+    if (!window.VideoDecoder) throw new Error("This browser has no WebCodecs video decoder. Use a current Chrome, Edge or Safari.");
+    META = LEANSCENE.meta;
+    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+    const t = performance.now();
+    const want = new URLSearchParams(location.search).get("ep") || (navigator.gpu ? "webgpu" : "wasm");
+    try { featS = await ort.InferenceSession.create(b64(LEANSCENE.features), { executionProviders: [want] }); EP = want; }
+    catch (e) { console.warn("falling back to WebAssembly:", e); featS = await ort.InferenceSession.create(b64(LEANSCENE.features), { executionProviders: ["wasm"] }); EP = "wasm"; }
+    headS = await ort.InferenceSession.create(b64(LEANSCENE.head), { executionProviders: [EP] });
+    await featS.run({ x: new ort.Tensor("float32", new Float32Array(3 * HW), [1, 3, SIZE, SIZE]) });  // warm-up
+    st.textContent = `Model ready: ${META.checkpoint}, ${((LEANSCENE.features.length + LEANSCENE.head.length) * 0.75 / 1e6).toFixed(1)} MB, loaded in ${Math.round(performance.now() - t)} ms. ` +
+      (EP === "webgpu" ? "Runs on your GPU (WebGPU)." : `Runs on your CPU (WebAssembly, ${ort.env.wasm.numThreads} thread${ort.env.wasm.numThreads > 1 ? "s" : ""}).`);
+    $("drop").classList.remove("busy");
+    const src = new URLSearchParams(location.search).get("src");  // ?src=clip.mp4 processes a file served next to the page
+    if (src) { const r = await fetch(src); if (!r.ok) throw new Error("Could not fetch " + src); run(new File([await r.blob()], src.split("/").pop())); }
+  } catch (e) { st.textContent = e.message || String(e); st.className = "err"; }
+}
+
+// --- decoding: every frame of the first video track, in presentation order ---------------
+function codecDescription(mp4, track) {
+  for (const entry of mp4.getTrackById(track.id).mdia.minf.stbl.stsd.entries) {
+    const box = entry.avcC || entry.hvcC || entry.vpcC || entry.av1C;
+    if (box) { const ds = new DataStream(undefined, 0, DataStream.BIG_ENDIAN); box.write(ds); return new Uint8Array(ds.buffer, 8); }
+  }
+}
+
+function decodeVideo(file, { onTrack, onFrame, shouldPause, index }) {  // index: filled with where each frame's bytes are, for thumbnails later
+  return new Promise((resolve, reject) => {
+    const mp4 = MP4Box.createFile();
+    let decoder = null, n = 0, failed = false;
+    const fail = e => { if (failed) return; failed = true; try { if (decoder && decoder.state !== "closed") decoder.close(); } catch (_) {} reject(e instanceof Error ? e : new Error(String(e))); };
+    mp4.onError = e => fail(new Error("Could not read this file as MP4/MOV (" + e + ")."));
+    mp4.onReady = info => {
+      const t = info.videoTracks[0];
+      if (!t) return fail(new Error("No video track found in this file."));
+      decoder = new VideoDecoder({
+        output: f => { try { if (!failed) onFrame(f, n++); } catch (e) { fail(e); } finally { f.close(); } },
+        error: e => fail(new Error(`This browser could not decode the video (codec ${t.codec}): ${e.message}`)),
+      });
+      const config = { codec: t.codec, codedWidth: t.video.width, codedHeight: t.video.height, description: codecDescription(mp4, t) };
+      if (index) index.config = config;
+      try { decoder.configure(config); }
+      catch (e) { return fail(new Error(`Unsupported video codec ${t.codec}: ${e.message}`)); }
+      if (onTrack) onTrack(t);
+      mp4.setExtractionOptions(t.id, null, { nbSamples: 100 });
+      mp4.start();
+    };
+    mp4.onSamples = (id, _user, samples) => {
+      if (failed) return;
+      if (index) for (const s of samples) { index.off.push(s.offset); index.size.push(s.size); index.cts.push(s.cts); index.sync.push(s.is_sync ? 1 : 0); }
+      for (const s of samples)
+        decoder.decode(new EncodedVideoChunk({ type: s.is_sync ? "key" : "delta", timestamp: 1e6 * s.cts / s.timescale, duration: 1e6 * s.duration / s.timescale, data: s.data }));
+      mp4.releaseUsedSamples(id, samples[samples.length - 1].number);
+    };
+    (async () => {
+      try {
+        const CHUNK = 1 << 20;
+        for (let off = 0; off < file.size && !failed; off += CHUNK) {
+          const buf = await file.slice(off, off + CHUNK).arrayBuffer();
+          buf.fileStart = off;
+          mp4.appendBuffer(buf);
+          while (!failed && ((decoder && decoder.decodeQueueSize > 40) || shouldPause())) await new Promise(r => setTimeout(r, 4));
+        }
+        if (failed) return;
+        mp4.flush();
+        if (!decoder) return fail(new Error("This does not look like an MP4/MOV video. WebM, MKV and AVI are not supported by this demo."));
+        await decoder.flush();
+        decoder.close();
+        resolve(n);
+      } catch (e) { fail(e); }
+    })();
+  });
+}
+
+// --- model -------------------------------------------------------------------------------
+async function detect(file, progress) {
+  const D = META.dim;
+  const live = $("live").getContext("2d");
+  // Frames are drawn (resized) into an 8x8 atlas of 100x100 tiles and read back once per batch.
+  // willReadFrequently keeps the atlas in CPU memory: reading pixels back from a GPU canvas was the
+  // slowest step of the page (415 vs 1,300 frames/s for decode + resize + readback of 720p, measured).
+  const TILES = 8, atlasC = document.createElement("canvas"); atlasC.width = atlasC.height = TILES * SIZE;
+  const atlas = atlasC.getContext("2d", { willReadFrequently: true });
+  atlas.imageSmoothingEnabled = true; atlas.imageSmoothingQuality = "low";  // bilinear, closest to cv2.resize
+  let feats = new Float32Array(D * 4096), nFeat = 0, total = 0, track = null, fill = 0;
+  const times = [], prof = { model: 0, resize: 0, head: 0 };  // milliseconds in the CNN, in resize + pixel readback, in the temporal head
+  const queue = []; let pumping = null;
+  const pump = () => pumping || (pumping = (async () => {
+    while (queue.length) {
+      const { x, n, hist } = queue.shift();
+      const tm = performance.now();
+      const out = await featS.run({ x: new ort.Tensor("float32", x, [n, 3, SIZE, SIZE]) });
+      prof.model += performance.now() - tm;
+      if ((nFeat + n) * D > feats.length) { const g = new Float32Array(feats.length * 2); g.set(feats); feats = g; }
+      if (out.y.dims[1] !== D - HIST) throw new Error("model.js does not match this page. Re-run demo/export_onnx.py and reload without cache.");
+      const y = out.y.data, E = D - HIST;  // model output: 128 CNN features, then the layout descriptor
+      for (let k = 0; k < n; k++) {      // feature row = CNN features, colour histogram, layout descriptor
+        const o = (nFeat + k) * D;
+        feats.set(y.subarray(k * E, k * E + 128), o);
+        feats.set(hist.subarray(k * HIST, (k + 1) * HIST), o + 128);
+        feats.set(y.subarray(k * E + 128, (k + 1) * E), o + 128 + HIST);
+      }
+      nFeat += n;
+      progress(nFeat, total);
+      await tick();  // let decoded frames and the page breathe
+    }
+    pumping = null;
+  })());
+  const push = () => {  // atlas -> one (n,3,100,100) tensor, planar BGR in [0,1] as the model was trained
+    if (!fill) return;
+    const tr = performance.now(), n = fill, rows = Math.ceil(n / TILES), AW = TILES * SIZE;
+    const d = atlas.getImageData(0, 0, AW, rows * SIZE).data, x = new Float32Array(n * 3 * HW), hist = new Float32Array(n * HIST);
+    for (let k = 0; k < n; k++) {
+      const ox = (k % TILES) * SIZE, oy = Math.floor(k / TILES) * SIZE, o = k * 3 * HW, ho = k * HIST;
+      for (let y = 0, p = 0; y < SIZE; y++) {
+        let q = ((oy + y) * AW + ox) * 4;
+        for (let c = 0; c < SIZE; c++, p++, q += 4) {
+          const r = d[q], g = d[q + 1], b = d[q + 2];
+          x[o + p] = b / 255; x[o + HW + p] = g / 255; x[o + 2 * HW + p] = r / 255;
+          hist[ho + (BIN[b] * 4 + BIN[g]) * 4 + BIN[r]] += 1 / HW;  // joint 4x4x4 colour histogram (models.color_hist)
+        }
+      }
+    }
+    prof.resize += performance.now() - tr;
+    fill = 0; queue.push({ x, n, hist }); pump();
+  };
+
+  const index = { config: null, off: [], size: [], cts: [], sync: [] };
+  await decodeVideo(file, {
+    index,
+    onTrack: t => { track = t; total = t.nb_samples; },
+    shouldPause: () => queue.length > 2,
+    onFrame: f => {
+      const tr = performance.now();
+      times.push(f.timestamp / 1e6);
+      atlas.drawImage(f, (fill % TILES) * SIZE, Math.floor(fill / TILES) * SIZE, SIZE, SIZE);
+      if (fill === 0) live.drawImage(f, 0, 0, SIZE, SIZE);  // small preview of where we are
+      prof.resize += performance.now() - tr;
+      if (++fill === BATCH) push();
+    },
+  });
+  push();
+  while (pumping) await pumping;
+  const n = nFeat;
+  if (!n) throw new Error("No frames could be decoded from this video.");
+
+  // temporal head over the whole video, in overlapping windows (same output as one pass)
+  const probs = new Float32Array(n * 3);
+  const th = performance.now();
+  for (let a = 0; a < n; a += HEAD_WINDOW) {
+    const lo = Math.max(0, a - HEAD_MARGIN), hi = Math.min(n, a + HEAD_WINDOW + HEAD_MARGIN), keep = Math.min(HEAD_WINDOW, n - a);
+    // slice (a copy): the worker takes ownership of the buffer it is sent
+    const out = await headS.run({ x: new ort.Tensor("float32", feats.slice(lo * D, hi * D), [1, hi - lo, D]) });
+    probs.set(out.y.data.subarray((a - lo) * 3, (a - lo + keep) * 3), a * 3);
+  }
+  prof.head = performance.now() - th;
+  return { n, times, probs, track, prof, index };
+}
+
+// the decision rule (leanscene.label_frames): returns runs of transition frames
+function transitions(probs, n) {
+  const lab = new Uint8Array(n);
+  for (let i = 0; i < n; i++) lab[i] = probs[i * 3 + 1] >= META.cut ? 1 : probs[i * 3 + 2] >= META.fade ? 2 : 0;
+  const fades = []; for (let i = 0; i < n; i++) if (lab[i] === 2) fades.push(i);
+  const closed = lab.slice();
+  for (let k = 1; k < fades.length; k++) { const a = fades[k - 1], b = fades[k]; if (b - a > 1 && b - a <= META.close + 1) closed.fill(2, a, b); }
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    if (!closed[i]) continue;
+    let e = i, gradual = false, peak = 0;
+    while (e + 1 < n && closed[e + 1]) e++;
+    for (let j = i; j <= e; j++) { if (closed[j] === 2) gradual = true; peak = Math.max(peak, probs[j * 3 + 1], probs[j * 3 + 2]); }
+    // a cut is labelled on the first frame of the new shot; a gradual run covers the blended frames
+    out.push({ start: i, end: e, type: gradual ? "gradual" : "cut", peak, before: Math.max(0, i - 1), after: gradual ? Math.min(n - 1, e + 1) : e });
+    i = e;
+  }
+  return out;
+}
+
+// second decode pass: exact thumbnails of the frames we want to show
+// --- thumbnails, decoded on demand ---------------------------------------------------------
+// Nothing is decoded twice up front. When a picture scrolls into view, the frames from the
+// keyframe before it up to it are read from the file and decoded, which takes a fraction of a
+// second. `index` is what the first pass recorded about every frame's bytes (see decodeVideo).
+const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";  // transparent pixel: no broken-image icon while a picture loads
+function thumbnailer(file, index) {
+  const n = index.cts.length;
+  const order = Uint32Array.from({ length: n }, (_, i) => i).sort((a, b) => index.cts[a] - index.cts[b]);  // frame (display order) -> sample (decode order)
+  const frameOf = new Uint32Array(n), keyBefore = new Uint32Array(n);
+  for (let f = 0; f < n; f++) frameOf[order[f]] = f;
+  for (let s = 0, k = 0; s < n; s++) { if (index.sync[s]) k = s; keyBefore[s] = k; }
+  const cache = new Map(), pending = new Map();  // frame -> promise of an image URL; keyframe sample -> Map(frame -> resolve)
+  const c = document.createElement("canvas"), ctx = c.getContext("2d");
+  let decoder = null, current = null, working = false, closed = false;
+  const open = () => {
+    decoder = new VideoDecoder({
+      output: f => {
+        try {
+          const done = current && current.get(f.timestamp);  // chunks are stamped with their frame number
+          if (done) {
+            if (!c.width || c.dataset.sized !== "1") { c.width = THUMB_W; c.height = Math.round(THUMB_W * f.displayHeight / f.displayWidth); c.dataset.sized = "1"; }
+            ctx.drawImage(f, 0, 0, c.width, c.height);
+            current.delete(f.timestamp); done(c.toDataURL("image/jpeg", 0.8));
+          }
+        } finally { f.close(); }
+      },
+      error: e => { console.warn("thumbnail decoder:", e); decoder = null; },
+    });
+    decoder.configure(index.config);
+  };
+  async function work() {
+    if (working) return;
+    working = true;
+    while (pending.size && !closed) {
+      const k = [...pending.keys()].pop(), group = pending.get(k);  // newest request first: what is on screen now
+      pending.delete(k); current = group;
+      try {
+        if (!decoder || decoder.state !== "configured") open();
+        let last = k, lo = Infinity, hi = 0;
+        for (const f of group.keys()) last = Math.max(last, order[f]);
+        for (let s = k; s <= last; s++) { lo = Math.min(lo, index.off[s]); hi = Math.max(hi, index.off[s] + index.size[s]); }
+        const buf = new Uint8Array(await file.slice(lo, hi).arrayBuffer());
+        for (let s = k; s <= last && decoder; s++)
+          decoder.decode(new EncodedVideoChunk({ type: s === k ? "key" : "delta", timestamp: frameOf[s], data: buf.subarray(index.off[s] - lo, index.off[s] - lo + index.size[s]) }));
+        if (decoder) await decoder.flush();
+      } catch (e) { console.warn("thumbnail:", e); decoder = null; }
+      for (const done of group.values()) done("");  // frames the decoder did not produce stay blank
+      current = null;
+    }
+    working = false;
+  }
+  const get = frame => {
+    if (!cache.has(frame)) cache.set(frame, new Promise(done => {
+      const k = keyBefore[order[frame]];
+      let group = pending.get(k);
+      if (group) pending.delete(k); else group = new Map();
+      group.set(frame, done); pending.set(k, group);  // re-inserted last, so it is served first
+      work();
+    }));
+    return cache.get(frame);
+  };
+  const seen = new IntersectionObserver(entries => {
+    for (const e of entries) if (e.isIntersecting) {
+      seen.unobserve(e.target);
+      get(+e.target.dataset.frame).then(url => { if (closed) return; e.target.classList.remove("loading"); if (url) e.target.src = url; });
+    }
+  }, { rootMargin: "300px" });
+  return {
+    get,
+    lazy(img, frame) { img.dataset.frame = frame; img.src = BLANK; img.classList.add("loading"); seen.observe(img); return img; },  // load when it nears the screen
+    close() { closed = true; seen.disconnect(); pending.clear(); try { if (decoder && decoder.state !== "closed") decoder.close(); } catch (_) {} },
+  };
+}
+
+// --- page --------------------------------------------------------------------------------
+async function run(file) {
+  if (busy || !featS) return;
+  busy = true; if (result) result.thumbs.close(); result = null;
+  $("error").hidden = true; $("results").hidden = true; $("progress").hidden = false; $("drop").classList.add("busy");
+  $("pbar").value = 0; $("ptext").textContent = "Reading " + file.name + "…";
+  try {
+    const t0 = performance.now();
+    const r = await detect(file, (done, total) => {
+      const dt = (performance.now() - t0) / 1000;
+      $("pbar").value = total ? done / total : 0;
+      $("ptext").textContent = `Detecting: ${done.toLocaleString()} / ${total.toLocaleString()} frames · ${Math.round(done / dt)} frames/s`;
+    });
+    const seconds = (performance.now() - t0) / 1000;
+    const trans = transitions(r.probs, r.n);
+    const stripIdx = Array.from({ length: Math.min(STRIP, r.n) }, (_, k) => Math.min(r.n - 1, Math.floor((k + 0.5) * r.n / Math.min(STRIP, r.n))));
+    const thumbs = thumbnailer(file, r.index);  // pictures are decoded when they scroll into view
+    const fps = r.n > 1 ? (r.n - 1) / (r.times[r.n - 1] - r.times[0]) : 0;
+    result = { file: file.name, frames: r.n, fps, seconds, model: META.checkpoint, prof: r.prof, rule: { cut: META.cut, fade: META.fade, close: META.close },
+      transitions: trans.map(t => ({ ...t, time: r.times[t.after] - r.times[0] })), probs: r.probs, times: r.times, thumbs, stripIdx };
+    window.LEANSCENE_RESULT = result;
+    show(file);
+  } catch (e) {
+    console.error(e);
+    $("error").textContent = e.message || String(e); $("error").hidden = false;
+  } finally {
+    busy = false; $("progress").hidden = true; $("drop").classList.remove("busy");
+  }
+}
+
+const timeOf = i => result.times[i] - result.times[0];
+function seek(t, play) { const v = $("player"); v.currentTime = Math.max(0, t); if (play) v.play().catch(() => {}); }
+
+function show(file) {
+  const R = result, v = $("player");
+  if (v.src) URL.revokeObjectURL(v.src);
+  v.src = URL.createObjectURL(file);
+  const cuts = R.transitions.filter(t => t.type === "cut").length, grads = R.transitions.length - cuts;
+  const dur = R.frames / (R.fps || 1);
+  const stat = (b, label) => `<div><b>${b}</b>${label}</div>`;
+  $("summary").innerHTML = stat(R.transitions.length + 1, "shots") + stat(cuts, "cuts") + stat(grads, "fades / gradual") +
+    stat(R.frames.toLocaleString(), `frames at ${R.fps.toFixed(2)} fps`) + stat(Math.round(R.frames / R.seconds).toLocaleString(), "frames/s, decoding included") +
+    stat((dur / R.seconds).toFixed(1) + "×", "faster than real time");
+  $("strip").replaceChildren(...R.stripIdx.map(i => { const im = new Image(); im.alt = "frame " + i; return R.thumbs.lazy(im, i); }));
+  $("cardsTitle").textContent = R.transitions.length ? `${R.transitions.length} transitions` : "No transitions found";
+  $("cards").replaceChildren(...R.transitions.map((t, k) => {
+    const b = document.createElement("button"); b.className = "card";
+    const where = t.type === "cut" ? `frame ${t.after}` : `frames ${t.start}–${t.end}`;
+    b.innerHTML = `<div class="pair"><img alt="frame ${t.before}"><img alt="frame ${t.after}"></div>` +
+      `<div class="cap"><span><span class="tag ${t.type}">${t.type}</span> · ${fmtTime(t.time)}</span><span class="mute">${where} · p ${t.peak.toFixed(2)}</span></div>`;
+    const [before, after] = b.querySelectorAll("img"); R.thumbs.lazy(before, t.before); R.thumbs.lazy(after, t.after);
+    b.onclick = () => { markCard(k); seek(timeOf(t.start) + 0.001, true); /* +1 ms: an exact frame time can round to the frame before */ v.scrollIntoView({ behavior: "smooth", block: "nearest" }); };
+    return b;
+  }));
+  activeCard = -1;
+  $("results").hidden = false;
+  drawOverview();
+  setView(0, R.frames);
+}
+
+// --- timeline: an overview of the whole video, and a strip below it that zooms and pans ----
+let view = { a: 0, b: 1 };  // the frames the strip shows, as fractional frame numbers [a, b)
+let dragging = false, ovDown = false, lastTouch = 0, drawQueued = false;
+const TOP = 14, RULER = 16;
+const span = () => view.b - view.a;
+const tlW = () => $("timeline").clientWidth || 1;
+const minSpan = () => Math.min(result.frames, Math.max(10, tlW() / 10));  // closest zoom: 10 px per frame
+const timeAt = f => timeOf(Math.max(0, Math.min(result.frames - 1, Math.floor(f))));
+function frameAtTime(t) {  // fractional frame shown at player time t
+  const T = result.times, t0 = T[0]; let lo = 0, hi = T.length - 1;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (T[m] - t0 <= t) lo = m; else hi = m - 1; }
+  const next = lo + 1 < T.length ? T[lo + 1] - T[lo] : 0;
+  return lo + (next > 0 ? Math.max(0, Math.min(1, (t - (T[lo] - t0)) / next)) : 0);
+}
+function setView(a, b) {
+  if (!result) return;
+  const n = result.frames, s = Math.max(minSpan(), Math.min(n, b - a));
+  a = Math.max(0, Math.min(n - s, a));
+  view = { a, b: a + s };
+  const box = $("ovbox"); box.style.left = 100 * a / n + "%"; box.style.width = 100 * s / n + "%";
+  $("zoominfo").textContent = s >= n ? "" : `${clock(timeAt(a))} – ${clock(timeAt(a + s))}`;
+  $("zfit").disabled = $("zout").disabled = s >= n; $("zin").disabled = s <= minSpan();
+  if (!drawQueued) { drawQueued = true; requestAnimationFrame(() => { drawQueued = false; drawTimeline(); }); }
+}
+function zoomAt(frame, factor) {  // keeps `frame` under the same pixel
+  const s = span(), ns = Math.max(minSpan(), Math.min(result.frames, s * factor)), a = frame - (frame - view.a) * ns / s;
+  setView(a, a + ns);
+}
+function clock(t, decimals = 0) {
+  const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t - h * 3600 - m * 60;
+  const ss = (s < 10 ? "0" : "") + s.toFixed(decimals);
+  return h ? `${h}:${m < 10 ? "0" : ""}${m}:${ss}` : `${m}:${ss}`;
+}
+
+function plot(g, W, y0, h, a, b) {  // cut and fade probability of frames a..b across W pixels
+  const R = result, px = W / (b - a), i0 = Math.max(0, Math.floor(a)), i1 = Math.min(R.frames, Math.ceil(b));
+  const layers = [[2, css("--fade"), 0.75], [1, css("--cut"), 1]];
+  if (px >= 1) {  // zoomed in: one bar per frame
+    const gap = px >= 4 ? 1 : 0;
+    for (const [k, color, alpha] of layers) {
+      g.fillStyle = color; g.globalAlpha = alpha;
+      for (let i = i0; i < i1; i++) { const p = R.probs[i * 3 + k]; if (p > 0.02) g.fillRect((i - a) * px, y0 + h * (1 - p), px - gap, h * p); }
+    }
+  } else {  // zoomed out: each pixel column shows the highest probability of the frames under it
+    const col = new Float32Array(W * 3);
+    for (let i = i0; i < i1; i++) {
+      const x = Math.max(0, Math.min(W - 1, Math.floor((i - a) * px))) * 3;
+      if (R.probs[i * 3 + 1] > col[x + 1]) col[x + 1] = R.probs[i * 3 + 1];
+      if (R.probs[i * 3 + 2] > col[x + 2]) col[x + 2] = R.probs[i * 3 + 2];
+    }
+    for (const [k, color, alpha] of layers) {
+      g.fillStyle = color; g.globalAlpha = alpha;
+      for (let x = 0; x < W; x++) { const p = col[x * 3 + k]; if (p > 0.02) g.fillRect(x, y0 + h * (1 - p), 1, h * p); }
+    }
+  }
+  g.globalAlpha = 1;
+}
+
+function canvas2d(id) {
+  const c = $(id), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+  c.width = W * dpr; c.height = H * dpr;
+  const g = c.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+  return { g, W, H };
+}
+
+function drawOverview() {
+  if (!result) return;
+  const { g, W, H } = canvas2d("overview");
+  plot(g, W, 2, H - 4, 0, result.frames);
+}
+
+function drawTimeline() {
+  if (!result) return;
+  const R = result, { g, W, H } = canvas2d("timeline"), { a, b } = view, px = W / (b - a);
+  const h = H - TOP - RULER - 2, cutC = css("--cut"), fadeC = css("--fade");
+  g.strokeStyle = css("--line"); g.setLineDash([3, 4]); g.lineWidth = 1;
+  for (const th of new Set([R.rule.cut, R.rule.fade])) { const y = TOP + h * (1 - th) + 0.5; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  g.setLineDash([]);
+  plot(g, W, TOP, h, a, b);
+  for (const t of R.transitions) {  // markers above the plot
+    if (t.end + 1 < a || t.start > b) continue;
+    const x = ((t.start + t.end + 1) / 2 - a) * px;
+    g.fillStyle = t.type === "cut" ? cutC : fadeC;
+    if (t.type !== "cut" && px >= 1) g.fillRect((t.start - a) * px, 4, (t.end + 1 - t.start) * px, 3);  // how long a gradual transition lasts
+    g.beginPath(); g.moveTo(x - 4, 2); g.lineTo(x + 4, 2); g.lineTo(x, 10); g.fill();
+  }
+  // time ruler: the smallest round step that keeps labels about 90 px apart
+  const t0 = timeAt(a), t1 = timeAt(b), secs = Math.max(1e-6, t1 - t0);
+  const step = [0.1, 0.2, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600].find(s => s / secs * W >= 90) || 3600;
+  g.fillStyle = css("--mute"); g.font = "10px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  for (let k = Math.ceil(t0 / step); k * step <= t1; k++) {
+    const x = (frameAtTime(k * step) - a) * px;
+    g.fillRect(x, H - RULER, 1, 4); g.fillText(clock(k * step, step < 1 ? 1 : 0), x + 3, H - 4);
+  }
+}
+
+const tl = $("tlwrap"), ov = $("ovwrap");
+const xFrac = ev => { const r = tl.getBoundingClientRect(); return (ev.clientX - r.left) / r.width; };
+function frameAtX(ev) { return Math.max(0, Math.min(result.frames - 1, Math.floor(view.a + xFrac(ev) * span()))); }
+tl.addEventListener("wheel", ev => {  // pinch or Ctrl/Cmd + scroll zooms; sideways scroll (or Shift + scroll) pans
+  if (!result) return;
+  const unit = ev.deltaMode === 1 ? 16 : 1;
+  if (ev.ctrlKey || ev.metaKey) zoomAt(view.a + xFrac(ev) * span(), Math.exp(ev.deltaY * unit * 0.01));
+  else if (Math.abs(ev.deltaX) > Math.abs(ev.deltaY)) { const d = ev.deltaX * unit * span() / tlW(); setView(view.a + d, view.b + d); }
+  else return;  // plain vertical scroll still scrolls the page
+  ev.preventDefault(); lastTouch = performance.now();
+}, { passive: false });
+let pinch = null;  // Safari reports trackpad pinches as gesture events
+tl.addEventListener("gesturestart", ev => { if (!result) return; ev.preventDefault(); pinch = { s: span(), f: view.a + xFrac(ev) * span() }; });
+tl.addEventListener("gesturechange", ev => { if (!pinch) return; ev.preventDefault(); zoomAt(pinch.f, pinch.s / ev.scale / span()); lastTouch = performance.now(); });
+tl.addEventListener("gestureend", () => { pinch = null; });
+let down = null;  // a press that has not moved is a click (jump there); one that moves drags the view
+tl.addEventListener("pointerdown", ev => { if (result && !ev.button) down = { x: ev.clientX, a: view.a, id: ev.pointerId }; });
+tl.addEventListener("pointermove", ev => {
+  if (!result) return;
+  if (down) {
+    const dx = ev.clientX - down.x;
+    if (!dragging && Math.abs(dx) > 4 && span() < result.frames) { dragging = true; try { tl.setPointerCapture(down.id); } catch (_) {} tl.classList.add("drag"); $("tip").hidden = true; }
+    if (dragging) { const a = down.a - dx * span() / tlW(); setView(a, a + span()); lastTouch = performance.now(); return; }
+  }
+  const i = frameAtX(ev), tip = $("tip"), r = tl.getBoundingClientRect();
+  tip.hidden = false; tip.style.left = Math.max(60, Math.min(r.width - 60, ev.clientX - r.left)) + "px";
+  tip.textContent = `${fmtTime(timeOf(i))} · frame ${i}`;
+});
+const release = ev => {
+  if (!down) return;
+  if (!dragging && ev.type === "pointerup") seek(timeOf(frameAtX(ev)), false);
+  down = null; dragging = false; tl.classList.remove("drag");
+};
+tl.addEventListener("pointerup", release);
+tl.addEventListener("pointercancel", release);
+tl.addEventListener("pointerleave", () => { $("tip").hidden = true; });
+// overview: press or drag to move the zoomed view there
+const ovGo = ev => { const r = ov.getBoundingClientRect(), f = (ev.clientX - r.left) / r.width * result.frames, s = span(); setView(f - s / 2, f + s / 2); lastTouch = performance.now(); };
+ov.addEventListener("pointerdown", ev => { if (!result || ev.button) return; ovDown = true; ovGo(ev); try { ov.setPointerCapture(ev.pointerId); } catch (_) {} });
+ov.addEventListener("pointermove", ev => { if (ovDown) ovGo(ev); });
+ov.addEventListener("pointerup", () => { ovDown = false; });
+ov.addEventListener("pointercancel", () => { ovDown = false; });
+const zoomButton = factor => () => {
+  if (!result) return;
+  const f = frameAtTime($("player").currentTime);
+  zoomAt(f >= view.a && f <= view.b ? f : (view.a + view.b) / 2, factor);  // around the playhead when it is in view
+};
+$("zin").onclick = zoomButton(0.5);
+$("zout").onclick = zoomButton(2);
+$("zfit").onclick = () => { if (result) setView(0, result.frames); };
+// previous / next transition: the buttons, and the left and right arrow keys
+let activeCard = -1;
+function markCard(k) {
+  const cards = $("cards").children;
+  if (cards[activeCard]) cards[activeCard].classList.remove("on");
+  activeCard = k; if (cards[k]) cards[k].classList.add("on");
+}
+function step(dir) {
+  if (!result || !result.transitions.length) return;
+  const T = result.transitions, v = $("player"), f = Math.floor(frameAtTime(v.currentTime) + 1e-3);
+  const back = v.paused ? 0 : (result.fps || 30) * 0.5;  // while playing, "previous" within half a second of a transition goes one further back
+  let k = -1;
+  if (dir > 0) k = T.findIndex(t => t.start > f);
+  else for (let i = T.length - 1; i >= 0; i--) if (T[i].start < f - back) { k = i; break; }
+  if (k < 0) return;
+  seek(timeOf(T[k].start) + 0.001, false);  // keeps playing if it was playing
+  markCard(k);
+}
+$("tprev").onclick = () => step(-1);
+$("tnext").onclick = () => step(1);
+document.addEventListener("keydown", ev => {
+  if (!result || ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey || (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight")) return;
+  if (ev.target.closest && ev.target.closest("input, textarea, select")) return;
+  ev.preventDefault();  // otherwise a focused player also seeks by its own step
+  step(ev.key === "ArrowRight" ? 1 : -1);
+});
+(function playhead() {
+  if (result) {
+    const v = $("player"), n = result.frames, f = frameAtTime(v.currentTime), s = span();
+    // while playing, turn the page when the playhead leaves the view (unless the view was just moved by hand)
+    if (!v.paused && s < n && !dragging && !ovDown && performance.now() - lastTouch > 1500 && (f < view.a || f > view.a + s * 0.95)) setView(f - s * 0.05, f + s * 0.95);
+    const p = (f - view.a) / span(), ph = $("playhead");
+    ph.hidden = p < 0 || p > 1; ph.style.left = 100 * p + "%";
+    $("ovhead").style.left = 100 * f / n + "%";
+  }
+  requestAnimationFrame(playhead);
+})();
+$("player").addEventListener("seeked", () => {  // a jump from a card or the player's own bar: bring it into view
+  if (!result) return;
+  const f = frameAtTime($("player").currentTime), s = span();
+  if (f < view.a || f > view.b) setView(f - s / 2, f + s / 2);
+});
+window.addEventListener("resize", () => { drawOverview(); setView(view.a, view.b); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { drawOverview(); drawTimeline(); });
+
+$("download").onclick = () => {
+  const R = result, body = { file: R.file, model: R.model, rule: R.rule, frames: R.frames, fps: R.fps,
+    transitions: R.transitions.map(t => ({ type: t.type, start_frame: t.start, end_frame: t.end, time_s: +t.time.toFixed(3), peak_probability: +t.peak.toFixed(4) })) };
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(body, null, 1)], { type: "application/json" }));
+  a.download = R.file.replace(/\.[^.]+$/, "") + ".transitions.json"; a.click(); URL.revokeObjectURL(a.href);
+};
+
+const drop = $("drop");
+$("file").addEventListener("change", ev => { if (ev.target.files[0]) run(ev.target.files[0]); ev.target.value = ""; });
+window.addEventListener("dragover", ev => { ev.preventDefault(); drop.classList.add("over"); });
+window.addEventListener("dragleave", ev => { if (!ev.relatedTarget) drop.classList.remove("over"); });
+window.addEventListener("drop", ev => { ev.preventDefault(); drop.classList.remove("over"); const f = ev.dataTransfer.files[0]; if (f) run(f); });
+
+loadModel();
+</script>
+</body>
+</html>
