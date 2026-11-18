@@ -91,8 +91,6 @@
     <strong>Drop a video here</strong>
     <span class="mute">or click to choose one (MP4 or MOV). It is processed in this tab and never uploaded.</span>
   </label>
-  <p id="searchlink" class="mute" style="font-size:13px;margin-top:8px" hidden>New: <a href="search.html" style="color:inherit">search the shots by description</a>, with a CLIP model that also runs in this tab (an 88 MB download).</p>
-  <p id="searchnote" class="mute" style="font-size:13px;margin-top:8px" hidden><b style="color:var(--ink)">Shot search is on.</b> Drop a video; when it has been processed, a search box appears above the player and you can find shots by describing them.</p>
   <p id="error" style="margin-top:10px" hidden></p>
 
   <section id="progress" hidden>
@@ -144,7 +142,7 @@
       </div>
       <div>
         <h2>Use it yourself</h2>
-        <pre>pip install git+https://github.com/lucasjacks0n/LeanScene
+        <pre>pip install leanscene
 leanscene video.mp4</pre>
         <p><a href="https://github.com/lucasjacks0n/LeanScene">Code, weights and training labels on GitHub</a>. The paper is in preparation.</p>
         <p class="mute">This page reads MP4 and MOV files in a current Chrome, Edge or Safari.</p>
@@ -464,21 +462,13 @@ async function run(file) {
   }
 }
 
-// Player time of frame i. The player's clock does not always start at the first video frame:
-// when the file has no edit list and its video starts after its audio (common with B-frames),
-// the first frame sits a couple of frames in. show() measures that as result.base.
-const base = () => result.base ?? result.times[0];
-const timeOf = i => result.times[i] - base();
+const timeOf = i => result.times[i] - result.times[0];
 function seek(t, play) { const v = $("player"); v.currentTime = Math.max(0, t); if (play) v.play().catch(() => {}); }
 
 function show(file) {
   const R = result, v = $("player");
   if (v.src) URL.revokeObjectURL(v.src);
   v.src = URL.createObjectURL(file);
-  if (v.requestVideoFrameCallback) v.requestVideoFrameCallback((now, m) => {  // the first frame shown tells us where the player's clock puts frame 0
-    const b = R.times[0] - m.mediaTime;
-    if (result === R && v.currentTime < 0.01 && Math.abs(b) < 10) R.base = b;
-  });
   const cuts = R.transitions.filter(t => t.type === "cut").length, grads = R.transitions.length - cuts;
   const dur = R.frames / (R.fps || 1);
   const stat = (b, label) => `<div><b>${b}</b>${label}</div>`;
@@ -500,7 +490,6 @@ function show(file) {
   $("results").hidden = false;
   drawOverview();
   setView(0, R.frames);
-  document.dispatchEvent(new CustomEvent("leanscene:result"));  // clip.js listens for this
 }
 
 // --- timeline: an overview of the whole video, and a strip below it that zooms and pans ----
@@ -512,7 +501,7 @@ const tlW = () => $("timeline").clientWidth || 1;
 const minSpan = () => Math.min(result.frames, Math.max(10, tlW() / 10));  // closest zoom: 10 px per frame
 const timeAt = f => timeOf(Math.max(0, Math.min(result.frames - 1, Math.floor(f))));
 function frameAtTime(t) {  // fractional frame shown at player time t
-  const T = result.times, t0 = base(); let lo = 0, hi = T.length - 1;
+  const T = result.times, t0 = T[0]; let lo = 0, hi = T.length - 1;
   while (lo < hi) { const m = (lo + hi + 1) >> 1; if (T[m] - t0 <= t) lo = m; else hi = m - 1; }
   const next = lo + 1 < T.length ? T[lo + 1] - T[lo] : 0;
   return lo + (next > 0 ? Math.max(0, Math.min(1, (t - (T[lo] - t0)) / next)) : 0);
@@ -669,14 +658,12 @@ function step(dir) {
 }
 $("tprev").onclick = () => step(-1);
 $("tnext").onclick = () => step(1);
-// Capture phase, and stopped there: a focused player handles the arrow keys itself (it seeks by
-// a few seconds) before a bubbling listener runs, which made one press skip several transitions.
-window.addEventListener("keydown", ev => {
+document.addEventListener("keydown", ev => {
   if (!result || ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey || (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight")) return;
   if (ev.target.closest && ev.target.closest("input, textarea, select")) return;
-  ev.preventDefault(); ev.stopImmediatePropagation();
+  ev.preventDefault();  // otherwise a focused player also seeks by its own step
   step(ev.key === "ArrowRight" ? 1 : -1);
-}, true);
+});
 (function playhead() {
   if (result) {
     const v = $("player"), n = result.frames, f = frameAtTime(v.currentTime), s = span();
@@ -708,13 +695,6 @@ $("file").addEventListener("change", ev => { if (ev.target.files[0]) run(ev.targ
 window.addEventListener("dragover", ev => { ev.preventDefault(); drop.classList.add("over"); });
 window.addEventListener("dragleave", ev => { if (!ev.relatedTarget) drop.classList.remove("over"); });
 window.addEventListener("drop", ev => { ev.preventDefault(); drop.classList.remove("over"); const f = ev.dataTransfer.files[0]; if (f) run(f); });
-
-// ?clip adds shot search: clip.js embeds one frame per shot with a CLIP model, in this tab
-if (new URLSearchParams(location.search).has("clip")) {
-  const s = document.createElement("script"); s.src = "clip.js"; document.head.append(s);
-  $("searchnote").hidden = false;
-  document.title = "LeanScene shot search"; document.querySelector("h1.logo span").textContent = "Shot search demo";
-} else $("searchlink").hidden = false;
 
 loadModel();
 </script>

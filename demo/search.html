@@ -1,8 +1,0 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>LeanScene shot search</title>
-<!-- The search demo is the main page with clip.js switched on. Other query options are passed through. -->
-<script>
-  const q = new URLSearchParams(location.search); q.set("clip", q.get("clip") || "");
-  location.replace("index.html?" + q.toString().replace(/clip=(&|$)/, "clip$1"));
-</script>
