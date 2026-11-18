@@ -5,7 +5,7 @@
   </picture>
 </h1>
 
-A 0.4M-parameter network that finds shot transitions (cuts, dissolves, fades) in video.
+A 0.39M-parameter network that finds shot transitions (cuts, dissolves, fades) in video.
 It scores higher than TransNet V2 on all three of that model's benchmarks, with 115x fewer
 operations per frame.
 
@@ -177,7 +177,7 @@ above recreate it. The `export` extra is only needed for `demo/export_onnx.py`.
 
 ```bibtex
 @misc{jackson2026leanscene,
-  title  = {LeanScene: A 0.5M-Parameter Network for Fast Shot Transition Detection},
+  title  = {LeanScene: A 0.39M-Parameter Network for Fast Shot Transition Detection},
   author = {Lucas Jackson},
   year   = {2026},
   note   = {In preparation}
