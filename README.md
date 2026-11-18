@@ -148,13 +148,19 @@ video on the page and it shows the transitions on a timeline. Nothing is uploade
 [`eval/`](https://github.com/lucasjacks0n/LeanScene/blob/main/eval/README.md) scores the bundled weights on the three benchmarks with the
 paper's protocol.
 
+## Training
+
+[`training/`](https://github.com/lucasjacks0n/LeanScene/blob/main/training/README.md) is the code that trained the bundled weights: the trainer, the
+synthetic transitions, and the mining and cleaning of hard negatives, with the command for
+each step of the paper's recipe. The single-shot clips behind the synthetic sequences are not
+distributed, so bring your own to train.
+
 ## Limits
 
 - Videos are decoded with OpenCV. Times are frame index divided by the container's frame
   rate, so they drift on variable-frame-rate files; frame indices are exact.
 - `--device mps` is not the default on Apple hardware: a process that fed MPS many different
   input lengths kept growing in memory in our runs.
-- Training code is not in this repository.
 
 ## Development
 
