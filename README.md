@@ -73,6 +73,24 @@ takes the number of frames read so far.
 
 Several videos can be given at once. `python -m leanscene` is the same command.
 
+## Node.js
+
+[`js/`](https://github.com/lucasjacks0n/LeanScene/blob/main/js/README.md) is the same model as an npm package for Node, with TypeScript types and
+the same command line. It decodes with ffmpeg and runs the network with ONNX Runtime.
+
+```sh
+npm install leanscene
+npx leanscene video.mp4
+```
+
+```ts
+import { detect } from "leanscene";
+const { shots, transitions } = await detect("video.mp4");
+```
+
+On 8 test videos it found 527 transitions where the Python package found 524, at 1,922 frames
+per second end to end on a laptop CPU against 1,106; its README has the comparison.
+
 ## Results
 
 LeanScene scores higher than TransNet V2 on all three benchmarks, at a twentieth of the size and with 115x
