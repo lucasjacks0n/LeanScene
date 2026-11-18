@@ -10,9 +10,11 @@ It scores higher than TransNet V2 on all three of that model's benchmarks, with 
 operations per frame.
 
 ```sh
-pip install leanscene
+pip install git+https://github.com/lucasjacks0n/LeanScene
 leanscene video.mp4
 ```
+
+A PyPI release (`pip install leanscene`) is on its way; until then, install from GitHub as above.
 
 ```
 video.mp4: 14775 frames, 25.000 fps, 51 shots, 50 transitions
