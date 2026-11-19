@@ -79,6 +79,40 @@
   .cols a { color:var(--ink); }
   .cols pre { margin:0 0 10px; padding:10px 12px; background:var(--panel); border:1px solid var(--line); border-radius:8px; font:13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x:auto; }
   [hidden] { display:none !important; }
+
+  :root { --ls:#2f9e44; --tn:#a8a39a; --grid:#ebe8e1; }
+  @media (prefers-color-scheme: dark) { :root { --tn:#6b675f; --grid:#2a2927; } }
+  .cols pre { white-space:pre-wrap; word-break:break-all; }
+  .lbl { font-size:12px !important; color:var(--mute); margin:0 0 4px !important; text-transform:uppercase; letter-spacing:.06em; }
+  .key { display:flex; gap:16px; font-size:12px; color:var(--mute); margin:6px 0 0; }
+  .key i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+  .headline { font-size:20px; line-height:1.3; letter-spacing:-0.01em; margin:0 0 18px; max-width:760px; }
+  .headline em { font-style:normal; color:var(--ls); }
+  .chartbox { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .chartbox h3 { font-size:13px; margin:0 0 2px; } .chartbox .sub { font-size:12px; color:var(--mute); margin:0 0 12px; }
+  [data-tip] { cursor:default; }
+
+  .db-row { display:grid; grid-template-columns:120px 1fr; align-items:center; gap:12px; height:34px; }
+  .db-name { font-size:13px; }
+  .db-track { position:relative; height:100%; margin-right:78px; background:linear-gradient(var(--grid),var(--grid)) 0 50%/100% 1px no-repeat; }
+  .db-line { position:absolute; top:50%; height:2px; margin-top:-1px; background:var(--ls); opacity:.5; }
+  .db-dot { position:absolute; top:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px; border-radius:50%; box-shadow:0 0 0 2px var(--panel); }
+  .db-dot.ls { background:var(--ls); } .db-dot.tn { background:var(--tn); }
+  .db-val { position:absolute; top:50%; transform:translate(10px,-50%); font-size:12px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .db-val b { color:var(--ls); font-weight:600; }
+  .db-axis { position:relative; height:16px; margin-right:78px; font-size:11px; color:var(--mute); }
+  .db-axis span { position:absolute; transform:translateX(-50%); font-variant-numeric:tabular-nums; }
+
+  .br-row { display:grid; grid-template-columns:96px 1fr; align-items:center; gap:12px; height:28px; }
+  .br-name { font-size:13px; }
+  .br-track { display:flex; min-width:0; align-items:center; gap:8px; }
+  .br-bar { height:12px; border-radius:0 4px 4px 0; flex:none; } .br-bar.ls { background:var(--ls); } .br-bar.tn { background:var(--tn); }
+  .br-val { font-size:12px; color:var(--mute); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .br-group + .br-group { margin-top:12px; }
+
+  .charts { display:grid; grid-template-columns:3fr 2fr; gap:12px; margin-bottom:8px; }
+  @media (max-width:760px) { .charts { grid-template-columns:1fr; } }
+  @media (max-width:480px) { .db-row { grid-template-columns:78px 1fr; } .db-name { font-size:12px; } .chartbox { padding:14px 12px; } }
 </style>
 </head>
 <body>
@@ -120,32 +154,50 @@
   </section>
 
   <section id="about">
-    <div class="facts">
-      <div><b>0.39 M</b>parameters, in a 1.6 MB model</div>
-      <div><b>115×</b>fewer operations per frame than TransNet V2</div>
-      <div><b>Local</b>your video is processed in this tab and never uploaded</div>
+    <p class="headline">Higher F1 than TransNet V2 on all three of its benchmarks, with <em>115× fewer operations</em> per frame. It runs here, in this tab: your video is never uploaded.</p>
+    <div class="charts">
+      <div class="chartbox"><h3>Accuracy</h3><p class="sub">F1 on the three standard shot-boundary benchmarks, scored the same way for both models</p><div class="db"><div class="db-row"><span class="db-name">BBC Planet Earth</span><div class="db-track">
+  <span class="db-line" style="left:84.40%;width:5.20%"></span>
+  <span class="db-dot tn" style="left:84.40%" title="TransNet V2: 96.1 F1"></span>
+  <span class="db-dot ls" style="left:89.60%" title="LeanScene: 97.4 F1"></span>
+  <span class="db-val" style="left:89.60%">97.4 <b>+1.3</b></span></div></div><div class="db-row"><span class="db-name">ClipShots</span><div class="db-track">
+  <span class="db-line" style="left:10.80%;width:5.60%"></span>
+  <span class="db-dot tn" style="left:10.80%" title="TransNet V2: 77.7 F1"></span>
+  <span class="db-dot ls" style="left:16.40%" title="LeanScene: 79.1 F1"></span>
+  <span class="db-val" style="left:16.40%">79.1 <b>+1.4</b></span></div></div><div class="db-row"><span class="db-name">RAI</span><div class="db-track">
+  <span class="db-line" style="left:70.40%;width:4.40%"></span>
+  <span class="db-dot tn" style="left:70.40%" title="TransNet V2: 92.6 F1"></span>
+  <span class="db-dot ls" style="left:74.80%" title="LeanScene: 93.7 F1"></span>
+  <span class="db-val" style="left:74.80%">93.7 <b>+1.1</b></span></div></div><div class="db-row"><span class="db-name"></span><div class="db-axis"><span style="left:0.00%">75</span><span style="left:20.00%">80</span><span style="left:40.00%">85</span><span style="left:60.00%">90</span><span style="left:80.00%">95</span><span style="left:100.00%">100</span></div></div></div>
+<div class="key"><span><i style="background:var(--ls)"></i>LeanScene</span><span><i style="background:var(--tn)"></i>TransNet V2</span><span>F1, mean of 5 training runs; axis starts at 75</span></div></div>
+      <div class="chartbox"><h3>Cost</h3><p class="sub">Per frame, from zero. Shorter is better</p>
+        <div class="br-group"><p class="lbl">Operations (multiply-adds)</p><div class="br-row"><span class="br-name">LeanScene</span><div class="br-track"><span class="br-bar ls" style="width:calc((100% - 70px) * 0.0087)" title="LeanScene: 7.2 M"></span><span class="br-val">7.2 M</span></div></div><div class="br-row"><span class="br-name">TransNet V2</span><div class="br-track"><span class="br-bar tn" style="width:calc((100% - 70px) * 1.0000)" title="TransNet V2: 832 M"></span><span class="br-val">832 M</span></div></div></div>
+        <div class="br-group"><p class="lbl">Parameters</p><div class="br-row"><span class="br-name">LeanScene</span><div class="br-track"><span class="br-bar ls" style="width:calc((100% - 70px) * 0.0512)" title="LeanScene: 0.39 M"></span><span class="br-val">0.39 M</span></div></div><div class="br-row"><span class="br-name">TransNet V2</span><div class="br-track"><span class="br-bar tn" style="width:calc((100% - 70px) * 1.0000)" title="TransNet V2: 7.62 M"></span><span class="br-val">7.62 M</span></div></div></div></div>
     </div>
     <div class="cols">
       <div>
         <h2>What it does</h2>
-        <p>LeanScene finds the shot transitions in a video: hard cuts, and gradual ones such as dissolves and fades. Drop a video above and you get every transition on a timeline, with the frame before and after each one.</p>
-        <p>On the three standard benchmarks it scores 97.4 (BBC Planet Earth), 79.1 (ClipShots) and 93.7 (RAI) F1, against 96.1, 77.7 and 92.6 for TransNet V2 measured the same way. That is higher on all three, from a model a twentieth of the size.</p>
+        <p>LeanScene finds every shot transition in a video: hard cuts, and gradual ones such as dissolves and fades. Drop a video above to see them on a timeline, each with the frame before and after.</p>
+        <p>The whole model is 1.6 MB, small enough to ship inside this page.</p>
       </div>
       <div>
         <h2>How it works</h2>
         <ol>
           <li>Every frame is decoded and shrunk to 100×100 pixels.</li>
-          <li>A small network turns each frame into a short description.</li>
-          <li>A second network reads those descriptions in order and labels every frame <i>same</i>, <i>cut</i> or <i>fade</i>.</li>
+          <li>A small network turns each frame into a short description, once.</li>
+          <li>A second network reads those descriptions in order and labels each frame <i>same</i>, <i>cut</i> or <i>fade</i>.</li>
         </ol>
         <p>Both run on your graphics card through WebGPU, or on the CPU where that is missing.</p>
       </div>
       <div>
         <h2>Use it yourself</h2>
+        <p class="lbl">Python</p>
         <pre>pip install git+https://github.com/lucasjacks0n/LeanScene
 leanscene video.mp4</pre>
-        <p>Or in Node.js: <code>npm install leanscene</code> (<a href="https://www.npmjs.com/package/leanscene">npm</a>).</p>
-        <p><a href="https://github.com/lucasjacks0n/LeanScene">Code, weights and training labels on GitHub</a>. The paper is in preparation.</p>
+        <p class="lbl">Node.js</p>
+        <pre>npm install leanscene
+npx leanscene video.mp4</pre>
+        <p><a href="https://github.com/lucasjacks0n/LeanScene">Code, weights and training labels on GitHub</a> · <a href="https://www.npmjs.com/package/leanscene">npm</a>. The paper is in preparation.</p>
         <p class="mute">This page reads MP4 and MOV files in a current Chrome, Edge or Safari.</p>
       </div>
     </div>
