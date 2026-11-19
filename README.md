@@ -9,6 +9,9 @@ A 0.39M-parameter network that finds shot transitions (cuts, dissolves, fades) i
 It scores higher than TransNet V2 on all three of that model's benchmarks, with 115x fewer
 operations per frame.
 
+**[Try it in your browser](https://lucasjackson.dev/leanscene/)**: drop a video and see every
+transition on a timeline. It runs in the tab; nothing is uploaded.
+
 ```sh
 # Python
 pip install git+https://github.com/lucasjacks0n/LeanScene
@@ -166,6 +169,7 @@ non-transitions on 466 skateboarding videos) the model was trained on.
 
 ## Browser demo
 
+Live at **[lucasjackson.dev/leanscene](https://lucasjackson.dev/leanscene/)**.
 [`demo/`](https://github.com/lucasjacks0n/LeanScene/blob/main/demo/README.md) runs the same model in a browser tab with ONNX Runtime Web: drop a
 video on the page and it shows the transitions on a timeline. Nothing is uploaded.
 
