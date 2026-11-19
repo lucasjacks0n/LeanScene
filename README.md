@@ -10,11 +10,17 @@ It scores higher than TransNet V2 on all three of that model's benchmarks, with 
 operations per frame.
 
 ```sh
+# Python
 pip install git+https://github.com/lucasjacks0n/LeanScene
 leanscene video.mp4
+
+# Node.js
+npm install leanscene
+npx leanscene video.mp4
 ```
 
-A PyPI release (`pip install leanscene`) is on its way; until then, install from GitHub as above.
+The Node.js package is [on npm](https://www.npmjs.com/package/leanscene). A PyPI release
+(`pip install leanscene`) is on its way; until then, install the Python package from GitHub as above.
 
 ```
 video.mp4: 14775 frames, 25.000 fps, 51 shots, 50 transitions
@@ -75,7 +81,7 @@ Several videos can be given at once. `python -m leanscene` is the same command.
 
 ## Node.js
 
-[`js/`](https://github.com/lucasjacks0n/LeanScene/blob/main/js/README.md) is the same model as an npm package for Node, with TypeScript types and
+[`js/`](https://github.com/lucasjacks0n/LeanScene/blob/main/js/README.md) is the same model as an [npm package](https://www.npmjs.com/package/leanscene) for Node, with TypeScript types and
 the same command line. It decodes with ffmpeg and runs the network with ONNX Runtime.
 
 ```sh
