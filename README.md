@@ -171,7 +171,9 @@ non-transitions on 466 skateboarding videos) the model was trained on.
 
 Live at **[lucasjackson.dev/leanscene](https://lucasjackson.dev/leanscene/)**.
 [`demo/`](https://github.com/lucasjacks0n/LeanScene/blob/main/demo/README.md) runs the same model in a browser tab with ONNX Runtime Web: drop a
-video on the page and it shows the transitions on a timeline. Nothing is uploaded.
+video on the page and it shows the transitions on a timeline, then lets you search the shots by
+describing them (one frame per shot is embedded with MobileCLIP, also in the tab). The video is
+never uploaded.
 
 ## Reproducing the numbers
 
