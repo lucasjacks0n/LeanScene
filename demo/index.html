@@ -72,6 +72,8 @@
   .legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
   #cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:12px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; padding:0; text-align:left; color:inherit; font:inherit; }
+  .pager { display:flex; align-items:center; justify-content:center; gap:12px; margin:14px 0 4px; font-size:13px; color:var(--mute); font-variant-numeric:tabular-nums; }
+  .pager.top { justify-content:flex-end; margin:-2px 0 10px; } .pager[hidden] { display:none; } .pager button:disabled { opacity:.4; cursor:default; }
   .card:hover, .card:focus-visible, .card.on { border-color:var(--accent); outline:none; }
   .card.on { box-shadow:0 0 0 1px var(--accent); }
   .pair { display:flex; gap:2px; background:#000; }
@@ -168,7 +170,9 @@
     </div>
     <div class="row"><h2 id="cardsTitle">Transitions</h2><button class="plain" id="download">Download JSON</button></div>
     <p class="mute" style="font-size:13px;margin:-4px 0 10px">Each card shows the last frame before the transition and the first frame after it. Click a card to play from the transition.</p>
+    <div class="pager top" hidden><button class="plain pprev">← Previous</button><span class="pinfo"></span><button class="plain pnext">Next →</button></div>
     <div id="cards"></div>
+    <div class="pager bottom" hidden><button class="plain pprev">← Previous</button><span class="pinfo"></span><button class="plain pnext">Next →</button></div>
   </section>
 
   <section id="about">
@@ -551,16 +555,8 @@ function show(file) {
     stat((dur / R.seconds).toFixed(1) + "×", "faster than real time");
   $("strip").replaceChildren(...R.stripIdx.map(i => { const im = new Image(); im.alt = "frame " + i; return R.thumbs.lazy(im, i); }));
   $("cardsTitle").textContent = R.transitions.length ? `${R.transitions.length} transitions` : "No transitions found";
-  $("cards").replaceChildren(...R.transitions.map((t, k) => {
-    const b = document.createElement("button"); b.className = "card";
-    const where = t.type === "cut" ? `frame ${t.after}` : `frames ${t.start}–${t.end}`;
-    b.innerHTML = `<div class="pair"><img alt="frame ${t.before}"><img alt="frame ${t.after}"></div>` +
-      `<div class="cap"><span><span class="tag ${t.type}">${t.type}</span> · ${fmtTime(t.time)}</span><span class="mute">${where} · p ${t.peak.toFixed(2)}</span></div>`;
-    const [before, after] = b.querySelectorAll("img"); R.thumbs.lazy(before, t.before); R.thumbs.lazy(after, t.after);
-    b.onclick = () => { markCard(k); seek(timeOf(t.start) + 0.001, true); /* +1 ms: an exact frame time can round to the frame before */ v.scrollIntoView({ behavior: "smooth", block: "nearest" }); };
-    return b;
-  }));
   activeCard = -1;
+  showPage(0);
   $("results").hidden = false;
   drawOverview();
   setView(0, R.frames);
@@ -713,12 +709,42 @@ $("zin").onclick = zoomButton(0.5);
 $("zout").onclick = zoomButton(2);
 $("zfit").onclick = () => { if (result) setView(0, result.frames); };
 // previous / next transition: the buttons, and the left and right arrow keys
-let activeCard = -1;
-function markCard(k) {
-  const cards = $("cards").children;
-  if (cards[activeCard]) cards[activeCard].classList.remove("on");
-  activeCard = k; if (cards[k]) cards[k].classList.add("on");
+// The cards are paged: a film has many hundreds of transitions.
+const PER_PAGE = 48;  // a multiple of 12, so rows are full at 4, 3, 2 and 1 columns
+let activeCard = -1, cardPage = 0;
+function card(t, k) {
+  const R = result, b = document.createElement("button"); b.className = "card";
+  const where = t.type === "cut" ? `frame ${t.after}` : `frames ${t.start}–${t.end}`;
+  b.innerHTML = `<div class="pair"><img alt="frame ${t.before}"><img alt="frame ${t.after}"></div>` +
+    `<div class="cap"><span><span class="tag ${t.type}">${t.type}</span> · ${fmtTime(t.time)}</span><span class="mute">${where} · p ${t.peak.toFixed(2)}</span></div>`;
+  const [before, after] = b.querySelectorAll("img"); R.thumbs.lazy(before, t.before); R.thumbs.lazy(after, t.after);
+  b.onclick = () => { markCard(k); seek(timeOf(t.start) + 0.001, true); /* +1 ms: an exact frame time can round to the frame before */ $("player").scrollIntoView({ behavior: "smooth", block: "nearest" }); };
+  return b;
 }
+function showPage(p, scroll) {
+  const T = result.transitions, n = T.length, pages = Math.max(1, Math.ceil(n / PER_PAGE));
+  cardPage = Math.max(0, Math.min(pages - 1, p));
+  const a = cardPage * PER_PAGE, b = Math.min(n, a + PER_PAGE);
+  $("cards").replaceChildren(...T.slice(a, b).map((t, i) => card(t, a + i)));
+  if (activeCard >= a && activeCard < b) $("cards").children[activeCard - a].classList.add("on");
+  for (const el of document.querySelectorAll(".pager")) {
+    el.hidden = pages < 2;
+    el.querySelector(".pinfo").textContent = `${(a + 1).toLocaleString()}–${b.toLocaleString()} of ${n.toLocaleString()}`;
+    el.querySelector(".pprev").disabled = cardPage === 0; el.querySelector(".pnext").disabled = cardPage === pages - 1;
+  }
+  if (scroll) $("cardsTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function markCard(k) {  // highlights transition k, turning to its page when it is on another one
+  const page = Math.floor(k / PER_PAGE);
+  if (k >= 0 && page !== cardPage) { activeCard = k; showPage(page); return; }
+  const cards = $("cards").children, a = cardPage * PER_PAGE;
+  if (cards[activeCard - a]) cards[activeCard - a].classList.remove("on");
+  activeCard = k; if (cards[k - a]) cards[k - a].classList.add("on");
+}
+document.addEventListener("click", ev => {
+  const btn = ev.target.closest && ev.target.closest(".pager button");
+  if (btn && result) showPage(cardPage + (btn.classList.contains("pnext") ? 1 : -1), !!btn.closest(".bottom"));
+});
 function step(dir) {
   if (!result) return;
   const T = result.transitions, v = $("player"), f = Math.floor(frameAtTime(v.currentTime) + 1e-3);

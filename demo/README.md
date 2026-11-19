@@ -48,6 +48,7 @@ Under the filmstrip, a thin overview shows the whole video; the strip below it z
 | Press or drag on the overview | Move the zoomed view there |
 | Click the strip | Jump the player to that frame |
 | `◀` `▶`, or the left and right arrow keys | Jump to the previous or next transition. Before the first transition, `◀` goes to the start of the video |
+| `← Previous` / `Next →` above and below the cards | The transition cards are shown 48 to a page. Stepping to a transition on another page turns to that page |
 
 While the video plays, the view turns the page when the playhead leaves it. Jumping from a
 card or the player's own bar brings that spot into view.
