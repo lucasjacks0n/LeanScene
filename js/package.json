@@ -1,0 +1,34 @@
+{
+  "name": "leanscene",
+  "version": "0.1.2",
+  "description": "Fast shot transition detection in 0.39M parameters: higher F1 than TransNet V2 on its three benchmarks, with 115x fewer operations",
+  "keywords": ["shot boundary detection", "scene detection", "video", "shot transition detection", "ffmpeg", "onnx"],
+  "license": "MIT",
+  "author": "Lucas Jackson",
+  "repository": { "type": "git", "url": "git+https://github.com/lucasjacks0n/LeanScene.git", "directory": "js" },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "bin": { "leanscene": "dist/cli.js" },
+  "files": ["dist", "weights", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "npm run build && node --test",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.20.0"
+  },
+  "peerDependencies": {
+    "ffmpeg-static": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "ffmpeg-static": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

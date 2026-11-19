@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leanscene"
+version = "0.1.1"
+description = "Fast shot transition detection in 0.39M parameters: higher F1 than TransNet V2 on its three benchmarks, with 115x fewer operations"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Lucas Jackson" }]
+requires-python = ">=3.10"
+keywords = ["shot boundary detection", "scene detection", "video", "shot transition detection"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy",
+    "opencv-python-headless",
+    "torch>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+export = ["onnx", "onnxruntime"]
+
+[project.scripts]
+leanscene = "leanscene.cli:main"
+
+[project.urls]
+Repository = "https://github.com/lucasjacks0n/LeanScene"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+leanscene = ["weights/*.pt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

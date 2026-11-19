@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use LeanScene, please cite it as below. The paper is in preparation."
+title: "LeanScene: A 0.39M-Parameter Network for Fast Shot Transition Detection"
+type: software
+authors:
+  - family-names: Jackson
+    given-names: Lucas
+license: MIT
+version: 0.1.1
