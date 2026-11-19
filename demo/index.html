@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LeanScene demo</title>
+<meta name="description" content="Find every cut and fade in a video, right in your browser. Higher F1 than TransNet V2 on all three benchmarks, with 115x less compute.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LeanScene: shot transition detection in your browser">
+<meta property="og:description" content="Higher F1 than TransNet V2 on all three benchmarks, with 115x less compute. 0.39M parameters, 1.6 MB, runs locally.">
+<meta property="og:url" content="https://lucasjackson.dev/leanscene/">
+<meta property="og:image" content="https://lucasjackson.dev/leanscene/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="LeanScene: higher F1 than TransNet V2 on all three benchmarks, with 115x less compute">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJMZWFuU2NlbmUiPgo8dGl0bGU+TGVhblNjZW5lPC90aXRsZT4KPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSIyMiIgZmlsbD0iIzExMTExMSIvPgo8cGF0aCBkPSJNMTYuNjYgMzcuNzRWOTJINTIuMjNWODcuNTlIMjEuODNWMzcuNzRaTTc5LjM4IDczLjk5SDY3LjgyUTY3Ljc1IDc5IDY5LjY1IDgyLjY1UTcxLjU1IDg2LjMgNzQuNzggODguNjZRNzguMDEgOTEuMDEgODIuMjMgOTIuMTFRODYuNDQgOTMuMjIgOTAuOTMgOTMuMjJROTYuNDggOTMuMjIgMTAwLjY5IDkxLjkyUTEwNC45MSA5MC42MyAxMDcuNzYgODguMzFRMTEwLjYxIDg2IDExMi4wNiA4Mi44UTExMy41IDc5LjYxIDExMy41IDc1Ljg5UTExMy41IDcxLjMzIDExMS41NiA2OC40UTEwOS42MiA2NS40OCAxMDYuOTYgNjMuNzNRMTA0LjMgNjEuOTggMTAxLjYxIDYxLjE4UTk4LjkxIDYwLjM4IDk3LjM5IDYwLjA4UTkyLjMgNTguNzkgODkuMTQgNTcuOTVRODUuOTkgNTcuMTIgODQuMiA1Ni4yOFE4Mi40MiA1NS40NCA4MS44MSA1NC40NlE4MS4yIDUzLjQ3IDgxLjIgNTEuODdRODEuMiA1MC4xMiA4MS45NiA0OC45OFE4Mi43MiA0Ny44NCA4My45IDQ3LjA4UTg1LjA4IDQ2LjMyIDg2LjUyIDQ2LjAyUTg3Ljk2IDQ1LjcyIDg5LjQxIDQ1LjcyUTkxLjYxIDQ1LjcyIDkzLjQ3IDQ2LjFROTUuMzQgNDYuNDggOTYuNzggNDcuMzlROTguMjIgNDguMyA5OS4xIDQ5LjlROTkuOTcgNTEuNDkgMTAwLjEyIDUzLjkySDExMS42OFExMTEuNjggNDkuMjEgMTA5Ljg5IDQ1LjkxUTEwOC4xIDQyLjYgMTA1LjA2IDQwLjQ3UTEwMi4wMiAzOC4zNCA5OC4xMSAzNy4zOVE5NC4yIDM2LjQ0IDg5Ljk0IDM2LjQ0UTg2LjI5IDM2LjQ0IDgyLjY0IDM3LjQzUTc5IDM4LjQyIDc2LjExIDQwLjQ3UTczLjIyIDQyLjUyIDcxLjQzIDQ1LjZRNjkuNjUgNDguNjggNjkuNjUgNTIuODZRNjkuNjUgNTYuNTggNzEuMDUgNTkuMjFRNzIuNDYgNjEuODMgNzQuNzQgNjMuNThRNzcuMDIgNjUuMzIgNzkuOTEgNjYuNDNRODIuOCA2Ny41MyA4NS44NCA2OC4yOVE4OC44IDY5LjEyIDkxLjY5IDY5LjgxUTk0LjU4IDcwLjQ5IDk2Ljg2IDcxLjRROTkuMTQgNzIuMzIgMTAwLjU0IDczLjY4UTEwMS45NSA3NS4wNSAxMDEuOTUgNzcuMjZRMTAxLjk1IDc5LjMxIDEwMC44OCA4MC42NFE5OS44MiA4MS45NyA5OC4yMiA4Mi43M1E5Ni42MyA4My40OSA5NC44IDgzLjc1UTkyLjk4IDg0LjAyIDkxLjM4IDg0LjAyUTg5LjAzIDg0LjAyIDg2LjgyIDgzLjQ1UTg0LjYyIDgyLjg4IDgyLjk5IDgxLjdRODEuMzUgODAuNTIgODAuMzYgNzguNjJRNzkuMzggNzYuNzIgNzkuMzggNzMuOTlaIiBmaWxsPSIjZmZmZmZmIi8+CjxwYXRoIGQ9Ik01MCA4aDE4bC05IDE0LjR6IiBmaWxsPSIjMmY5ZTQ0Ii8+PHBhdGggZD0iTTU5IDI2VjEwNCIgc3Ryb2tlPSIjMmY5ZTQ0IiBzdHJva2Utd2lkdGg9IjMiLz4KPC9zdmc+Cg==">
 <style>
   :root { --bg:#f6f5f1; --panel:#fff; --ink:#1c1b19; --mute:#6b675f; --line:#dcd8cf; --cut:#2f9e44; --fade:#1971c2; --accent:#1c1b19; }
