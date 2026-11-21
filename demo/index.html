@@ -323,11 +323,10 @@
 // the temporal head then labels each frame same / cut / fade, and the frozen rule
 // (cut >= 0.7, fade >= 0.8, fade runs closed over gaps of <= 8 frames) turns that into transitions.
 const $ = id => document.getElementById(id);
-const SIZE = 100, HW = SIZE * SIZE, BATCH = 64;
-const HEAD_WINDOW = 2048, HEAD_MARGIN = 64;  // the head sees 32 frames each way; 64 keeps windowed output identical
+const SIZE = 100, HW = SIZE * SIZE, BATCH = 64, TILES = 8;  // TILES: frames are resized into an atlas of 8x8 tiles
+const HEAD_CHUNK = 512, HEAD_MARGIN = 64;  // the head sees 32 frames each way; 64 keeps chunked output identical
 const STRIP = 20, THUMB_W = 320;
-const HIST = 64;  // colour histogram bins; BIN maps a byte to its bin exactly as float32 (v/255)*(4-0.001) truncates
-const BIN = Uint8Array.from({ length: 256 }, (_, v) => Math.floor(Math.fround(Math.fround(v / 255) * Math.fround(3.999))));
+const HIST = 64;  // colour histogram bins
 let featS, headS, META, EP, busy = false, result = null;
 
 // yield to the event loop without setTimeout's 4 ms minimum
@@ -366,17 +365,24 @@ function codecDescription(mp4, track) {
   }
 }
 
-function decodeVideo(file, { onTrack, onFrame, shouldPause, index }) {  // index: filled with where each frame's bytes are, for thumbnails later
+function decodeVideo(file, { onTrack, onFrame, shouldPause, index }) {  // index: filled as it goes with where each frame's bytes are, for thumbnails
   return new Promise((resolve, reject) => {
     const mp4 = MP4Box.createFile();
-    let decoder = null, n = 0, failed = false;
+    let decoder = null, n = 0, failed = false, lastKey = 0;
+    const waiting = [];  // [time, sample] of the samples handed to the decoder whose frame has not come out yet
+    const place = () => {  // frames come out in presentation order, so this one is the waiting sample with the smallest time
+      let m = 0; for (let i = 1; i < waiting.length; i++) if (waiting[i][0] < waiting[m][0]) m = i;
+      if (!waiting.length) return;
+      const s = waiting[m][1]; waiting[m] = waiting[waiting.length - 1]; waiting.pop();
+      index.sampleOf.push(s); index.frameOf[s] = n;
+    };
     const fail = e => { if (failed) return; failed = true; try { if (decoder && decoder.state !== "closed") decoder.close(); } catch (_) {} reject(e instanceof Error ? e : new Error(String(e))); };
     mp4.onError = e => fail(new Error("Could not read this file as MP4/MOV (" + e + ")."));
     mp4.onReady = info => {
       const t = info.videoTracks[0];
       if (!t) return fail(new Error("No video track found in this file."));
       decoder = new VideoDecoder({
-        output: f => { try { if (!failed) onFrame(f, n++); } catch (e) { fail(e); } finally { f.close(); } },
+        output: f => { try { if (!failed) { if (index) place(); onFrame(f, n++); } } catch (e) { fail(e); } finally { f.close(); } },
         error: e => fail(new Error(`This browser could not decode the video (codec ${t.codec}): ${e.message}`)),
       });
       const config = { codec: t.codec, codedWidth: t.video.width, codedHeight: t.video.height, description: codecDescription(mp4, t) };
@@ -389,7 +395,10 @@ function decodeVideo(file, { onTrack, onFrame, shouldPause, index }) {  // index
     };
     mp4.onSamples = (id, _user, samples) => {
       if (failed) return;
-      if (index) for (const s of samples) { index.off.push(s.offset); index.size.push(s.size); index.cts.push(s.cts); index.sync.push(s.is_sync ? 1 : 0); }
+      if (index) for (const s of samples) {
+        const i = index.off.length; if (s.is_sync) lastKey = i;
+        index.off.push(s.offset); index.size.push(s.size); index.keyBefore.push(lastKey); waiting.push([s.cts, i]);
+      }
       for (const s of samples)
         decoder.decode(new EncodedVideoChunk({ type: s.is_sync ? "key" : "delta", timestamp: 1e6 * s.cts / s.timescale, duration: 1e6 * s.duration / s.timescale, data: s.data }));
       mp4.releaseUsedSamples(id, samples[samples.length - 1].number);
@@ -415,17 +424,41 @@ function decodeVideo(file, { onTrack, onFrame, shouldPause, index }) {  // index
 }
 
 // --- model -------------------------------------------------------------------------------
+// Turning a batch's pixels into the model's input takes the page about as long as resizing the
+// frames does (measured), so a worker does it while the page goes on with the next frames.
+// This function is turned into text to start the worker: it can use nothing from outside itself.
+function pixelWorker(SIZE, HIST, TILES) {
+  const HW = SIZE * SIZE, AW = TILES * SIZE;
+  // BIN maps a byte to its colour histogram bin exactly as float32 (v/255)*(4-0.001) truncates
+  const BIN = Uint8Array.from({ length: 256 }, (_, v) => Math.floor(Math.fround(Math.fround(v / 255) * Math.fround(3.999))));
+  self.onmessage = ev => {  // atlas pixels -> one (n,3,SIZE,SIZE) tensor, planar BGR in [0,1] as the model was trained
+    const { run, n, d } = ev.data, t = performance.now(), x = new Float32Array(n * 3 * HW), hist = new Float32Array(n * HIST);
+    for (let k = 0; k < n; k++) {
+      const ox = (k % TILES) * SIZE, oy = Math.floor(k / TILES) * SIZE, o = k * 3 * HW, ho = k * HIST;
+      for (let y = 0, p = 0; y < SIZE; y++) {
+        let q = ((oy + y) * AW + ox) * 4;
+        for (let c = 0; c < SIZE; c++, p++, q += 4) {
+          const r = d[q], g = d[q + 1], b = d[q + 2];
+          x[o + p] = b / 255; x[o + HW + p] = g / 255; x[o + 2 * HW + p] = r / 255;
+          hist[ho + (BIN[b] * 4 + BIN[g]) * 4 + BIN[r]] += 1 / HW;  // joint 4x4x4 colour histogram (models.color_hist)
+        }
+      }
+    }
+    postMessage({ run, n, x, hist, ms: performance.now() - t }, [x.buffer, hist.buffer]);
+  };
+}
+let pixels = null, runs = 0;
 async function detect(file, progress) {
   const D = META.dim;
   const live = $("live").getContext("2d");
   // Frames are drawn (resized) into an 8x8 atlas of 100x100 tiles and read back once per batch.
   // willReadFrequently keeps the atlas in CPU memory: reading pixels back from a GPU canvas was the
   // slowest step of the page (415 vs 1,300 frames/s for decode + resize + readback of 720p, measured).
-  const TILES = 8, atlasC = document.createElement("canvas"); atlasC.width = atlasC.height = TILES * SIZE;
+  const atlasC = document.createElement("canvas"); atlasC.width = atlasC.height = TILES * SIZE;
   const atlas = atlasC.getContext("2d", { willReadFrequently: true });
   atlas.imageSmoothingEnabled = true; atlas.imageSmoothingQuality = "low";  // bilinear, closest to cv2.resize
   let feats = new Float32Array(D * 4096), nFeat = 0, total = 0, track = null, fill = 0;
-  const times = [], prof = { model: 0, resize: 0, head: 0 };  // milliseconds in the CNN, in resize + pixel readback, in the temporal head
+  const times = [], prof = { model: 0, resize: 0, pixels: 0, head: 0 };  // milliseconds in the CNN, in resize + pixel readback, in the worker that builds the input, in the temporal head
   const queue = []; let pumping = null;
   const pump = () => pumping || (pumping = (async () => {
     while (queue.length) {
@@ -443,60 +476,124 @@ async function detect(file, progress) {
         feats.set(y.subarray(k * E + 128, (k + 1) * E), o + 128 + HIST);
       }
       nFeat += n;
+      await head(false);
       progress(nFeat, total);
       await tick();  // let decoded frames and the page breathe
     }
     pumping = null;
   })());
-  const push = () => {  // atlas -> one (n,3,100,100) tensor, planar BGR in [0,1] as the model was trained
+  if (!pixels) pixels = new Worker(URL.createObjectURL(new Blob([`(${pixelWorker})(${SIZE},${HIST},${TILES})`], { type: "text/javascript" })));
+  const run = ++runs; let away = 0, workerError = null;  // away: batches the worker has not sent back yet
+  pixels.onmessage = ev => {
+    const m = ev.data; if (m.run !== run) return;
+    away--; prof.pixels += m.ms; queue.push(m); pump();
+  };
+  pixels.onerror = ev => { workerError = new Error("The page's pixel worker stopped: " + (ev.message || "unknown error")); };
+  const push = () => {  // the atlas's pixels go to the worker, which sends back the model's input
     if (!fill) return;
-    const tr = performance.now(), n = fill, rows = Math.ceil(n / TILES), AW = TILES * SIZE;
-    const d = atlas.getImageData(0, 0, AW, rows * SIZE).data, x = new Float32Array(n * 3 * HW), hist = new Float32Array(n * HIST);
-    for (let k = 0; k < n; k++) {
-      const ox = (k % TILES) * SIZE, oy = Math.floor(k / TILES) * SIZE, o = k * 3 * HW, ho = k * HIST;
-      for (let y = 0, p = 0; y < SIZE; y++) {
-        let q = ((oy + y) * AW + ox) * 4;
-        for (let c = 0; c < SIZE; c++, p++, q += 4) {
-          const r = d[q], g = d[q + 1], b = d[q + 2];
-          x[o + p] = b / 255; x[o + HW + p] = g / 255; x[o + 2 * HW + p] = r / 255;
-          hist[ho + (BIN[b] * 4 + BIN[g]) * 4 + BIN[r]] += 1 / HW;  // joint 4x4x4 colour histogram (models.color_hist)
-        }
-      }
-    }
+    const tr = performance.now(), n = fill, d = atlas.getImageData(0, 0, TILES * SIZE, Math.ceil(n / TILES) * SIZE).data;
+    away++; pixels.postMessage({ run, n, d }, [d.buffer]);
     prof.resize += performance.now() - tr;
-    fill = 0; queue.push({ x, n, hist }); pump();
+    fill = 0;
   };
 
-  const index = { config: null, off: [], size: [], cts: [], sync: [] };
-  await decodeVideo(file, {
-    index,
-    onTrack: t => { track = t; total = t.nb_samples; },
-    shouldPause: () => queue.length > 2,
-    onFrame: f => {
-      const tr = performance.now();
-      times.push(f.timestamp / 1e6);
-      atlas.drawImage(f, (fill % TILES) * SIZE, Math.floor(fill / TILES) * SIZE, SIZE, SIZE);
-      if (fill === 0) live.drawImage(f, 0, 0, SIZE, SIZE);  // small preview of where we are
-      prof.resize += performance.now() - tr;
-      if (++fill === BATCH) push();
-    },
-  });
-  push();
-  while (pumping) await pumping;
-  const n = nFeat;
-  if (!n) throw new Error("No frames could be decoded from this video.");
+  const index = { config: null, off: [], size: [], keyBefore: [], sampleOf: [], frameOf: [] };
 
-  // temporal head over the whole video, in overlapping windows (same output as one pass)
-  const probs = new Float32Array(n * 3);
-  const th = performance.now();
-  for (let a = 0; a < n; a += HEAD_WINDOW) {
-    const lo = Math.max(0, a - HEAD_MARGIN), hi = Math.min(n, a + HEAD_WINDOW + HEAD_MARGIN), keep = Math.min(HEAD_WINDOW, n - a);
-    // slice (a copy): the worker takes ownership of the buffer it is sent
-    const out = await headS.run({ x: new ort.Tensor("float32", feats.slice(lo * D, hi * D), [1, hi - lo, D]) });
-    probs.set(out.y.data.subarray((a - lo) * 3, (a - lo + keep) * 3), a * 3);
+  // Shots are handed on while the video is still being read: `stream.shots` grows as the head
+  // confirms each shot's end, a "leanscene:shots" event says when it grew, and `done` when the
+  // last one is in. clip.js uses this to pick up each shot's picture without a second decode.
+  const stream = window.LEANSCENE_STREAM = { shots: [], done: false, failed: false, thumbs: null };
+  const shotsGrew = () => document.dispatchEvent(new CustomEvent("leanscene:shots"));
+  // About once per second of video, a small copy of the frame is drawn into a ring of tiles on
+  // one canvas. It stays on the graphics card: nothing is read back here. When a shot ends, the
+  // tile nearest its middle, if it is still in the ring, is handed on with the shot as a bitmap.
+  // Measured on 20 minutes of 1080p (28,906 frames): this adds about 0.3 s to 17.5 s of
+  // detection. Holding every 8th frame added 1.5 s, and holding ImageBitmaps of the frames 2.5 s.
+  const RING_COLS = 8, slotOf = new Map(), frameIn = [];  // frame -> its tile, and tile -> its frame
+  let every = 0, ringX = null, ringW = 0, ringH = 0, ringSize = 0, ringN = 0, holdOK = true;
+  const hold = (f, i) => {
+    try {
+      if (!ringX) {
+        ringW = THUMB_W; ringH = Math.round(THUMB_W * f.displayHeight / f.displayWidth);
+        const rows = Math.max(1, Math.min(16, Math.floor(4096 / ringH))), c = document.createElement("canvas");
+        c.width = RING_COLS * ringW; c.height = rows * ringH; ringSize = RING_COLS * rows; ringX = c.getContext("2d", { alpha: false });
+      }
+      const slot = ringN++ % ringSize;
+      if (frameIn[slot] !== undefined) slotOf.delete(frameIn[slot]);
+      ringX.drawImage(f, (slot % RING_COLS) * ringW, Math.floor(slot / RING_COLS) * ringH, ringW, ringH);
+      frameIn[slot] = i; slotOf.set(i, slot);
+    } catch (_) { holdOK = false; }
+  };
+  const heldNear = (start, end, mid) => {  // the held frame inside the shot that is nearest its middle, or -1
+    if (!ringX) return -1;
+    const near = Math.round(mid / every) * every;
+    for (const f of [near, near < mid ? near + every : near - every]) if (f >= start && f <= end && slotOf.has(f)) return f;
+    return -1;
+  };
+  let shotStart = 0, scan = 0;  // first frame of the shot still open; first frame the rule has not settled
+  const addShot = (start, end) => {
+    const mid = (start + end) >> 1, f = heldNear(start, end, mid), s = { start, end, mid, rep: mid, held: null, heldFrame: f };
+    if (f >= 0) try {
+      const slot = slotOf.get(f);
+      s.held = createImageBitmap(ringX.canvas, (slot % RING_COLS) * ringW, Math.floor(slot / RING_COLS) * ringH, ringW, ringH);
+      s.held.catch(() => {});
+    } catch (_) { s.held = null; }
+    stream.shots.push(s);
+  };
+  const emit = final => {  // the rule over the frames not settled yet; a run is settled once no later frame can extend it
+    const base = scan, n = headDone - base, before = stream.shots.length;
+    for (const t of transitions(probs.subarray(base * 3, headDone * 3), n)) {
+      if (!final && t.end + META.close + 2 > n) break;
+      if (base + t.before >= shotStart) addShot(shotStart, base + t.before);
+      shotStart = base + t.after; scan = base + t.end + 1;
+    }
+    if (final) { if (shotStart <= headDone - 1) addShot(shotStart, headDone - 1); stream.done = true; }
+    if (final || stream.shots.length > before) shotsGrew();
+  };
+  // The temporal head, a chunk of frames at a time as their features arrive (same output as one pass).
+  let probs = new Float32Array(3 * 4096), headDone = 0;
+  async function head(final) {
+    while (headDone < nFeat && (final || nFeat - headDone >= HEAD_CHUNK + HEAD_MARGIN)) {
+      const th = performance.now(), a = headDone, lo = Math.max(0, a - HEAD_MARGIN), hi = Math.min(nFeat, a + HEAD_CHUNK + HEAD_MARGIN), keep = Math.min(HEAD_CHUNK, nFeat - a);
+      // slice (a copy): the worker takes ownership of the buffer it is sent
+      const out = await headS.run({ x: new ort.Tensor("float32", feats.slice(lo * D, hi * D), [1, hi - lo, D]) });
+      if ((a + keep) * 3 > probs.length) { const g = new Float32Array(Math.max(probs.length * 2, (a + keep) * 3)); g.set(probs); probs = g; }
+      probs.set(out.y.data.subarray((a - lo) * 3, (a - lo + keep) * 3), a * 3);
+      headDone += keep; prof.head += performance.now() - th;
+      emit(final && headDone >= nFeat);
+    }
   }
-  prof.head = performance.now() - th;
-  return { n, times, probs, track, prof, index };
+
+  try {
+    await decodeVideo(file, {
+      index,
+      onTrack: t => {
+        track = t; total = t.nb_samples; stream.thumbs = thumbnailer(file, index);
+        every = Math.max(8, Math.round(t.nb_samples / (t.duration / t.timescale)) || 24);  // frames in a second of this video
+      },
+      shouldPause: () => queue.length + away > 2,
+      onFrame: (f, i) => {
+        const tr = performance.now();
+        times.push(f.timestamp / 1e6);
+        if (holdOK && i % every === 0 && window.clipHoldFrames && clipHoldFrames()) hold(f, i);
+        atlas.drawImage(f, (fill % TILES) * SIZE, Math.floor(fill / TILES) * SIZE, SIZE, SIZE);
+        if (fill === 0) live.drawImage(f, 0, 0, SIZE, SIZE);  // small preview of where we are
+        prof.resize += performance.now() - tr;
+        if (++fill === BATCH) push();
+      },
+    });
+    push();
+    while (away || pumping) { if (workerError) throw workerError; if (pumping) await pumping; else await new Promise(r => setTimeout(r, 1)); }
+    const n = nFeat;
+    if (!n) throw new Error("No frames could be decoded from this video.");
+    await head(true);
+    return { n, times, probs: probs.slice(0, n * 3), track, prof, thumbs: stream.thumbs };
+  } catch (e) {
+    stream.failed = true; if (stream.thumbs) stream.thumbs.close(); shotsGrew();
+    throw e;
+  } finally {
+    if (ringX) ringX.canvas.width = ringX.canvas.height = 0;  // gives the ring's memory back
+  }
 }
 
 // the decision rule (leanscene.label_frames): returns runs of transition frames
@@ -523,14 +620,11 @@ function transitions(probs, n) {
 // --- thumbnails, decoded on demand ---------------------------------------------------------
 // Nothing is decoded twice up front. When a picture scrolls into view, the frames from the
 // keyframe before it up to it are read from the file and decoded, which takes a fraction of a
-// second. `index` is what the first pass recorded about every frame's bytes (see decodeVideo).
+// second. `index` is what the first pass records about every frame's bytes (see decodeVideo);
+// it is still growing while the video is read, and any frame that has come out can be asked for.
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";  // transparent pixel: no broken-image icon while a picture loads
 function thumbnailer(file, index) {
-  const n = index.cts.length;
-  const order = Uint32Array.from({ length: n }, (_, i) => i).sort((a, b) => index.cts[a] - index.cts[b]);  // frame (display order) -> sample (decode order)
-  const frameOf = new Uint32Array(n), keyBefore = new Uint32Array(n);
-  for (let f = 0; f < n; f++) frameOf[order[f]] = f;
-  for (let s = 0, k = 0; s < n; s++) { if (index.sync[s]) k = s; keyBefore[s] = k; }
+  const order = index.sampleOf, frameOf = index.frameOf, keyBefore = index.keyBefore;  // frame (display order) -> sample (decode order), and back; sample -> its keyframe
   const cache = new Map(), pending = new Map();  // frame -> promise of an image URL; keyframe sample -> Map(frame -> resolve)
   const c = document.createElement("canvas"), ctx = c.getContext("2d");
   let decoder = null, current = null, working = false, closed = false;
@@ -563,7 +657,7 @@ function thumbnailer(file, index) {
         for (let s = k; s <= last; s++) { lo = Math.min(lo, index.off[s]); hi = Math.max(hi, index.off[s] + index.size[s]); }
         const buf = new Uint8Array(await file.slice(lo, hi).arrayBuffer());
         for (let s = k; s <= last && decoder; s++)
-          decoder.decode(new EncodedVideoChunk({ type: s === k ? "key" : "delta", timestamp: frameOf[s], data: buf.subarray(index.off[s] - lo, index.off[s] - lo + index.size[s]) }));
+          decoder.decode(new EncodedVideoChunk({ type: s === k ? "key" : "delta", timestamp: frameOf[s] ?? 1e12 + s /* its frame has not come out of the first pass yet: never asked for */, data: buf.subarray(index.off[s] - lo, index.off[s] - lo + index.size[s]) }));
         if (decoder) await decoder.flush();
       } catch (e) { console.warn("thumbnail:", e); decoder = null; }
       for (const done of group.values()) done("");  // frames the decoder did not produce stay blank
@@ -610,7 +704,7 @@ async function run(file) {
     const seconds = (performance.now() - t0) / 1000;
     const trans = transitions(r.probs, r.n);
     const stripIdx = Array.from({ length: Math.min(STRIP, r.n) }, (_, k) => Math.min(r.n - 1, Math.floor((k + 0.5) * r.n / Math.min(STRIP, r.n))));
-    const thumbs = thumbnailer(file, r.index);  // pictures are decoded when they scroll into view
+    const thumbs = r.thumbs;  // pictures are decoded when they scroll into view
     const fps = r.n > 1 ? (r.n - 1) / (r.times[r.n - 1] - r.times[0]) : 0;
     result = { file: file.name, frames: r.n, fps, seconds, model: META.checkpoint, prof: r.prof, rule: { cut: META.cut, fade: META.fade, close: META.close },
       transitions: trans.map(t => ({ ...t, time: r.times[t.after] - r.times[0] })), probs: r.probs, times: r.times, thumbs, stripIdx };
@@ -896,7 +990,7 @@ window.addEventListener("drop", ev => { ev.preventDefault(); drop.classList.remo
 
 // ?clip adds shot search: clip.js embeds one frame per shot with a CLIP model, in this tab
 if (true) {  // this page is the search demo
-  const s = document.createElement("script"); s.src = "clip.js?v=5"; document.head.append(s);
+  const s = document.createElement("script"); s.src = "clip.js?v=7"; document.head.append(s);
   
   
 } else $("searchlink").hidden = false;

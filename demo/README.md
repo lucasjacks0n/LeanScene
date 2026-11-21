@@ -43,9 +43,14 @@ Reload the page without cache afterwards.
 
 ## Shot search
 
-After a video is processed, the page takes one frame from every shot (the middle one, or
-another when the middle one is blank), embeds it with a CLIP-style image encoder, and enables
-the search box above the transition cards. A typed description is embedded with the matching
+After a video is processed, the page takes one frame from every shot (one near the middle, or
+another when that one is blank), embeds it with a CLIP-style image encoder, and enables
+the search box above the transition cards. The frames are picked up while the video is read
+the first time, so embedding does not decode the video again: about once per second of video
+a small copy of the frame is kept on the graphics card, and when a shot ends the kept frame
+nearest its middle is stored for it. A shot with no kept frame (shorter than a second, or its
+middle long past) uses its exact middle frame, decoded from the file. Embedding starts when
+detection has finished, so that it does not slow detection down. A typed description is embedded with the matching
 text encoder, and the 48 closest shots replace the transition cards in the same grid; *Clear*
 brings the transitions back. Click a result to play from the start of its shot, or press
 *Similar* on one to find shots that look like it. Shots that are blank throughout (all black
@@ -60,8 +65,8 @@ model's state, the download progress in megabytes, and whether it runs on the GP
 | none (default) | MobileCLIP-S0 (`Xenova/mobileclip_s0`) | 88 MB: image encoder 45 MB, text encoder 43 MB |
 | `?clip=openai` | OpenAI CLIP ViT-B/32 (`Xenova/clip-vit-base-patch32`) | 240 MB: image encoder 176 MB, text encoder 64 MB |
 
-The image encoder runs on WebGPU when the browser has it, else on WebAssembly; the text encoder
-always runs on WebAssembly. The models are not part of this repository and keep their own
+Both encoders run in a worker. The image encoder runs on WebGPU when the browser has it, else
+on WebAssembly; the text encoder always runs on WebAssembly. The models are not part of this repository and keep their own
 licenses (MobileCLIP is under Apple's license, CLIP under MIT).
 
 Checked on 2026-11-17 in headless Chrome on an Apple M1 Pro, with a 5-minute 1080p H.264 clip
@@ -77,8 +82,19 @@ the three suggested searches each put a matching shot first; on the 52-second *S
 4 all-black shots were left out and no black thumbnail appeared in the results; search,
 *Similar*, *Clear*, the arrow keys during a search and loading a second video mid-search all
 left the right list on screen.
-**Not checked:** a full-length film through the search, `?clip=openai` through the page, search
-quality beyond a few queries, other browsers, the search field on a real phone.
+Checked on 2026-11-20 (headless Chrome, WebGPU, Apple M1 Pro, other work running on the
+machine), after the frames-kept-from-the-first-pass change, on 20 minutes of a 1080p H.264
+film (28,906 frames, 168 shots), three runs each, against the page before the change:
+embedding took 2.7 to 2.8 s where it took 9.9 to 10.3 s, and 167 of the 168 shots used a kept
+frame. On the sample clip, a text search, *Similar* and a second video in the same page gave
+the right lists. In an earlier experiment on the same footage, embeddings of frames within 4
+frames of the middle had a mean cosine similarity of 0.946 with the exact-middle embeddings,
+and 99% of shots were their own nearest match; frames up to half a second away, as kept now,
+were not compared.
+**Not checked:** a full-length film through the search after this change, `?clip=openai`
+through the page, search quality beyond a few queries, other browsers (the workers and the
+kept frames included), the page opened from disk after this change, the search field on a
+real phone.
 
 ## Timeline
 
@@ -104,10 +120,13 @@ It mirrors `leanscene.frame_probs` and `leanscene.label_frames`:
 1. `mp4box` demuxes the file and WebCodecs (`VideoDecoder`) decodes every frame, in order.
 2. Each frame is resized to 100x100 on a canvas (bilinear). Sixty-four frames are drawn into
    one 800x800 atlas, kept in CPU memory, and read back together.
-3. The frame network (`features` graph) runs on each batch. The 64-bin colour histogram is
-   computed in the page from the pixels, not in the graph, where it is a large one-hot.
-4. The temporal head (`head` graph) runs over the whole video in windows of 2,048 frames
-   with 64 frames of overlap each side, which equals one pass.
+3. A worker turns each batch's pixels into the network's input and the 64-bin colour
+   histogram (computed from the pixels, not in the graph, where it is a large one-hot), while
+   the page goes on with the next frames. The frame network (`features` graph) runs on each
+   batch.
+4. The temporal head (`head` graph) runs as the features arrive, in chunks of 512 frames
+   with 64 frames of overlap each side, which equals one pass. Each shot is known a moment
+   after it ends.
 5. Rule: cut >= 0.7, fade >= 0.8, fade runs closed over gaps of <= 8 frames. A cut is
    labelled on the first frame of the new shot.
 6. Thumbnails are decoded on demand. The first pass records where each frame's bytes are in the
@@ -156,7 +175,17 @@ No state is kept: nothing is written to disk and there is nothing to resume.
   on a cut of it that has an edit list, all landed on the intended frame. The arrow keys were
   also stepping several transitions when the player had focus (its own arrow-key seek ran too);
   with the fix, 8 presses forward and 3 back each moved exactly one transition.
-- **Not checked**: Safari, Firefox, HEVC, videos above 720p, WebAssembly speed after the change.
+- **Pixel worker and chunked head** (2026-11-20, headless Chrome, WebGPU, Apple M1 Pro, other
+  work running on the machine): on 20 minutes of a 1080p H.264 film (28,906 frames), three
+  runs each, detection took 17.4 to 18.4 s (1,575 to 1,658 frames/s) where the page before
+  took 19.3 to 20.9 s (1,381 to 1,498 frames/s). All six runs found the same 167 transitions,
+  and the chunked head's transitions matched the rule run once over the whole video. Measured
+  apart on the same file, decoding alone ran at about 2,700 frames/s and decoding with the
+  resize and readback at about 2,000. Tried and dropped, because they were no faster:
+  resizing the frames in the worker (about 240 frames/s), an atlas on the graphics card read
+  back in the worker, and running the frame network in the worker.
+- **Not checked**: Safari, Firefox, HEVC, WebAssembly speed after these changes, a full-length
+  film after these changes.
 
 ## Limits
 
