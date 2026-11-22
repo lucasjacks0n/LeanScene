@@ -14,7 +14,7 @@ transition on a timeline. It runs in the tab; nothing is uploaded.
 
 ```sh
 # Python
-pip install git+https://github.com/lucasjacks0n/LeanScene
+pip install leanscene
 leanscene video.mp4
 
 # Node.js
@@ -22,8 +22,8 @@ npm install leanscene
 npx leanscene video.mp4
 ```
 
-The Node.js package is [on npm](https://www.npmjs.com/package/leanscene). A PyPI release
-(`pip install leanscene`) is on its way; until then, install the Python package from GitHub as above.
+The Python package is [on PyPI](https://pypi.org/project/leanscene/) and the Node.js package is
+[on npm](https://www.npmjs.com/package/leanscene).
 
 ```
 video.mp4: 14775 frames, 25.000 fps, 51 shots, 50 transitions
