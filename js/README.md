@@ -179,7 +179,7 @@ The Python package installs a command of the same name; the table, JSON and CSV 
 | `labelFrames(probs, { cut, fade, close }?)` | One label per frame: 0 same, 1 cut, 2 fade |
 | `findTransitions(labels)`, `findShots(transitions, frames)` | The two steps `detect` applies after `labelFrames` |
 | `loadModel(options?)` | A model to pass as `options.model` |
-| `decodeFrames(file)` | An async iterator of frames, as `detect` decodes them. Browser: a `Blob`. Node: a path |
+| `decodeFrames(file, options?)` | An async iterator of frames, as `detect` decodes them. Browser: a `Blob`, with `{ signal, onTrack }`. Node: a path, with `{ ffmpeg, signal }` |
 | `frameFrom(image)` | Browser only: one frame from anything a canvas can draw |
 | `frameRate(path)`, `ffmpegPath()` | Node only: frames per second from `ffprobe` (or `null`); the ffmpeg in use |
 
@@ -192,11 +192,12 @@ The Python package installs a command of the same name; the table, JSON and CSV 
 | `window` | 4096 | Frames the temporal head labels per call |
 | `progress` | none | Called with the frames done so far (and, in the browser, the file's frame count when it says) |
 | `signal` | none | An `AbortSignal` that stops the decoder |
+| `onTrack` | none | Browser only: called once with the video track's `{ codec, width, height, frames, fps }` as soon as the file's header is read. `frames` and `fps` are what the header says (null in a fragmented file); the result's `fps` is the measured one |
 | `ffmpeg` | see above | Node only: the ffmpeg program |
 
 `leanscene/browser` and `leanscene/node` name one build explicitly, for a setup that picks
-the wrong one or for TypeScript, whose types for `"leanscene"` are the Node ones unless
-`customConditions: ["browser"]` is set.
+the wrong one. TypeScript needs no setting: with `moduleResolution` set to `bundler` (Vite's
+default) it gets the browser types, and with `node16` or `nodenext` the Node ones.
 
 ## Same results everywhere?
 
@@ -256,8 +257,8 @@ Nothing is written to disk and there is no state to resume.
   variable-frame-rate files; frame indices are exact.
 - Only the first video track is read. Rotation metadata is ignored in the browser (frames are
   squashed to 100x100 either way).
-- Browser: MP4 and MOV only, and a file whose index is at its end is read to that point before
-  the first frame comes out.
+- Browser: MP4 and MOV only. A file whose index is at its end works: its end is read first, then
+  its frames from the start.
 - Node: `fps` is `null` when `ffprobe` is not beside `ffmpeg` (the `ffmpeg-static` package has
   no `ffprobe`); shots and transitions are unaffected.
 - Installing brings both ONNX Runtimes: `onnxruntime-node` (about 290 MB on disk) and
@@ -274,8 +275,11 @@ npm install          # the ONNX Runtimes, mp4box, TypeScript, and esbuild + pupp
 npm test             # compiles to dist/, then runs test/
 ```
 
-The browser tests bundle the browser build and run it in headless Chrome on WebAssembly; they
-are skipped when Chrome (`CHROME_PATH`, or the usual place) or ffmpeg is missing.
+The browser tests bundle the browser build and run it in headless Chrome: a 5 MB video with its
+index at the end and the same video "faststart", the default backend, and the fallback from
+WebGPU to WebAssembly. They are skipped when Chrome (`CHROME_PATH`, or the usual place) or
+ffmpeg is missing. `test/exports.test.js` checks which build and which types Node, a browser
+bundler and TypeScript get from `import "leanscene"`.
 
 | Path | What it is | Size | Safe to delete? |
 |---|---|---|---|

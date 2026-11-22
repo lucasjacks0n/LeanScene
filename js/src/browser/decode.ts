@@ -143,8 +143,15 @@ export async function* decodeFrames(file: Blob, options: DecodeOptions = {}): As
   const idle = () => new Promise<void>(r => setTimeout(r, 4));
   const pump = (async () => {
     try {
-      for (let off = 0; off < file.size && !stopped && !failure; off += CHUNK) {
-        mp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(await file.slice(off, off + CHUNK).arrayBuffer(), off));
+      // mp4box drops the sample data it is given before it has read the index (moov), so in a file
+      // whose index is at its end (ffmpeg's default, and many cameras) the frames would be lost.
+      // appendBuffer returns the position it needs next: after the index it points back at the
+      // first sample, so the file is read from there. In a "faststart" file it just moves on.
+      let off = 0;
+      while (off < file.size && !stopped && !failure) {
+        const chunk = await file.slice(off, off + CHUNK).arrayBuffer();
+        const next = mp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(chunk, off));
+        off = typeof next === "number" && next !== off ? next : off + chunk.byteLength;
         // wait while the decoder or the consumer is behind, so a long video is never held in memory
         while (!stopped && !failure && ((decoder && decoder.decodeQueueSize > 40) || ready.length - at > 4 * TILES * TILES)) await idle();
       }

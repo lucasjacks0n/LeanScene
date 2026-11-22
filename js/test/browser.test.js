@@ -27,6 +27,15 @@ before(async () => {
   const part = src => ["-f", "lavfi", "-t", "1.6", "-i", `${src}=size=320x240:rate=25`];
   execFileSync(ffmpegPath(), ["-v", "error", ...part("testsrc2"), ...part("smptebars"), ...part("mandelbrot"),
     "-filter_complex", "[0:v][1:v][2:v]concat=n=3:v=1:a=0,format=yuv420p", "-c:v", "libx264", "-y", join(dir, "three-shots.mp4")]);
+  // A larger video, read in several 1 MB chunks (about 5 MB): three 4-second shots with noise so
+  // that it does not compress away, cuts at frames 100 and 200. ffmpeg puts the index (moov) at
+  // the end, as many cameras do; the second copy has it at the start ("faststart").
+  const long = src => ["-f", "lavfi", "-t", "4", "-i", `${src}=size=640x360:rate=25`];
+  execFileSync(ffmpegPath(), ["-v", "error", ...long("testsrc2"), ...long("smptebars"), ...long("mandelbrot"),
+    "-filter_complex", "[0:v][1:v][2:v]concat=n=3:v=1:a=0,noise=alls=20:allf=t,format=yuv420p",
+    "-c:v", "libx264", "-crf", "28", "-y", join(dir, "index-at-end.mp4")]);
+  execFileSync(ffmpegPath(), ["-v", "error", "-i", join(dir, "index-at-end.mp4"), "-c", "copy", "-movflags", "+faststart",
+    "-y", join(dir, "index-at-start.mp4")]);
   writeFileSync(join(dir, "app.js"), `import * as leanscene from ${JSON.stringify(join(root, "dist/browser/index.js"))};\nwindow.leanscene = leanscene;\n`);
   await build({ entryPoints: [join(dir, "app.js")], bundle: true, format: "esm", splitting: true, platform: "browser",
                 outdir: join(dir, "out"), logLevel: "silent" });
@@ -42,12 +51,19 @@ before(async () => {
     res.writeHead(200, { "content-type": types[extname(path)] ?? "application/octet-stream", "content-length": statSync(path).size });
     createReadStream(path).pipe(res);
   }).listen(0);
-  browser = await puppeteer.launch({ executablePath: chrome, headless: "new", args: ["--no-sandbox"] });
-  page = await browser.newPage();
-  await page.goto(`http://127.0.0.1:${server.address().port}/`);
-  await page.waitForFunction("window.leanscene !== undefined", { timeout: 60000 });
+  browser = await puppeteer.launch({ executablePath: chrome, headless: "new", args: ["--no-sandbox", "--enable-unsafe-webgpu"] });
+  page = await open();
   await page.evaluate(async () => { window.model = await leanscene.loadModel({ backend: "wasm", wasmPaths: "/ort/" }); });
 });
+
+/** A fresh page with the bundle loaded. `before` runs in it before the bundle does. */
+async function open(before) {
+  const p = await browser.newPage();
+  if (before) await p.evaluateOnNewDocument(before);
+  await p.goto(`http://127.0.0.1:${server.address().port}/`);
+  await p.waitForFunction("window.leanscene !== undefined", { timeout: 60000 });
+  return p;
+}
 after(async () => {
   await browser?.close();
   server?.close();
@@ -107,4 +123,59 @@ test("browser: a file that is not a video is an error, and so is a missing one",
   });
   assert.match(errors[0], /MP4 or MOV|MP4\/MOV/);
   assert.match(errors[1], /could not fetch/);
+});
+
+test("browser: a file read in several chunks, with its index at the end or at the start", { skip }, async () => {
+  const r = await page.evaluate(async () => {
+    const run = async url => {
+      const x = await leanscene.detect(url, { model });
+      return { frames: x.frames, fps: x.fps, cuts: x.transitions.map(t => [t.start, t.kind]), probs: Array.from(x.probs) };
+    };
+    const size = (await (await fetch("/index-at-end.mp4")).blob()).size;
+    return { size, end: await run("/index-at-end.mp4"), start: await run("/index-at-start.mp4") };
+  });
+  assert.ok(r.size > 3 * 2 ** 20, `the fixture is ${r.size} bytes; it must span several 1 MB chunks`);
+  for (const x of [r.end, r.start]) {
+    assert.equal(x.frames, 300);
+    assert.equal(x.fps, 25);
+    assert.deepEqual(x.cuts, [[100, "cut"], [200, "cut"]]);
+  }
+  assert.deepEqual(r.end.probs, r.start.probs);  // the same frames, whichever way the file is laid out
+});
+
+test("browser: the default backend (WebGPU when it starts, else WebAssembly) gives the same result", { skip }, async () => {
+  const p = await open();
+  try {
+    const r = await p.evaluate(async () => {
+      const m = await leanscene.loadModel({ wasmPaths: "/ort/" });
+      const x = await leanscene.detect("/three-shots.mp4", { model: m });
+      return { backend: m.backend, gpu: "gpu" in navigator, json: x.toJSON() };
+    });
+    assert.ok(["webgpu", "wasm"].includes(r.backend));
+    if (!r.gpu) assert.equal(r.backend, "wasm");
+    assert.deepEqual(r.json.transitions.map(t => [t.start, t.kind]), [[40, "cut"], [80, "cut"]]);
+  } finally {
+    await p.close();
+  }
+});
+
+test("browser: when WebGPU is present but will not start, the model falls back to WebAssembly", { skip }, async () => {
+  // a browser that has WebGPU but no usable GPU: requestAdapter() resolves to null
+  const p = await open(() => {
+    if (!("gpu" in navigator)) Object.defineProperty(navigator, "gpu", { value: {}, configurable: true });
+    navigator.gpu.requestAdapter = async () => null;
+  });
+  try {
+    const r = await p.evaluate(async () => {
+      const m = await leanscene.loadModel({ wasmPaths: "/ort/" });
+      const x = await leanscene.detect("/three-shots.mp4", { model: m });
+      const forced = await leanscene.loadModel({ backend: "webgpu", wasmPaths: "/ort/" }).then(() => "loaded", e => "error");
+      return { backend: m.backend, cuts: x.transitions.map(t => t.start), forced };
+    });
+    assert.equal(r.backend, "wasm");
+    assert.deepEqual(r.cuts, [40, 80]);
+    assert.equal(r.forced, "error");  // asked for WebGPU explicitly: no silent fallback
+  } finally {
+    await p.close();
+  }
 });

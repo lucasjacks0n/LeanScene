@@ -94,7 +94,7 @@ export function headProbs(model: Runtime, features: Float32Array, frames: number
 }
 
 export interface StreamOptions {
-  /** Frames encoded per call (default 8 in Node, 64 in the browser). */
+  /** Frames encoded per call (default 8 on a CPU, 64 on WebGPU). */
   batch?: number;
   /** Frames the temporal head labels per call (default 4096). */
   window?: number;
