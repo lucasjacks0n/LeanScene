@@ -17,13 +17,13 @@ transition on a timeline. It runs in the tab; nothing is uploaded.
 pip install leanscene
 leanscene video.mp4
 
-# Node.js
+# JavaScript: Node.js and the browser
 npm install leanscene
 npx leanscene video.mp4
 ```
 
-The Python package is [on PyPI](https://pypi.org/project/leanscene/) and the Node.js package is
-[on npm](https://www.npmjs.com/package/leanscene).
+The Python package is [on PyPI](https://pypi.org/project/leanscene/) and the JavaScript package,
+for Node.js and the browser, is [on npm](https://www.npmjs.com/package/leanscene).
 
 ```
 video.mp4: 14775 frames, 25.000 fps, 51 shots, 50 transitions
@@ -82,23 +82,29 @@ takes the number of frames read so far.
 
 Several videos can be given at once. `python -m leanscene` is the same command.
 
-## Node.js
+## JavaScript: the browser and Node.js
 
-[`js/`](https://github.com/lucasjacks0n/LeanScene/blob/main/js/README.md) is the same model as an [npm package](https://www.npmjs.com/package/leanscene) for Node, with TypeScript types and
-the same command line. It decodes with ffmpeg and runs the network with ONNX Runtime.
+[`js/`](https://github.com/lucasjacks0n/LeanScene/blob/main/js/README.md) is the same model as an [npm package](https://www.npmjs.com/package/leanscene), with TypeScript types. One
+import works in both places.
 
 ```sh
 npm install leanscene
-npx leanscene video.mp4
 ```
 
 ```ts
 import { detect } from "leanscene";
+
+// in the browser: a File from an input or a drop. It runs in the page, on WebGPU when there is one
+const { shots, transitions } = await detect(input.files[0]);
+
+// in Node: a path, decoded with ffmpeg. `npx leanscene video.mp4` is the same from a shell
 const { shots, transitions } = await detect("video.mp4");
 ```
 
-On 8 test videos it found 527 transitions where the Python package found 524, at 1,922 frames
-per second end to end on a laptop CPU against 1,106; its README has the comparison.
+On 8 test videos the Node build found 527 transitions where the Python package found 524, at
+1,922 frames per second end to end on a laptop CPU against 1,106. The browser build found 545
+where Node found 546 on 9 videos, at about 700 frames per second on WebGPU. Its README has
+both comparisons.
 
 ## Results
 
