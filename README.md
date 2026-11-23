@@ -33,7 +33,8 @@ video.mp4: 14775 frames, 25.000 fps, 51 shots, 50 transitions
     ...
 ```
 
-The weights (1.6 MB) ship inside the package; nothing is downloaded at run time. The paper is in
+The weights ship inside the package (1.6 MB, plus a 1.6 MB copy as ONNX graphs for the CPU);
+nothing is downloaded at run time. The paper is in
 preparation.
 
 ## Python
@@ -55,6 +56,11 @@ model = leanscene.load_model()            # or load_model(device="cuda")
 for path in paths:
     result = leanscene.detect(path, model=model)
 ```
+
+On the CPU, `load_model()` returns a `leanscene.OnnxModel`, the network on ONNX Runtime, which
+is about twice as fast there. It is not a `torch.nn.Module`: for the PyTorch model (to train,
+export, or call it directly) use `load_model(backend="torch")`. A checkpoint file, `device="cuda"`
+or `"mps"`, and a Python without an ONNX Runtime wheel give the PyTorch model anyway.
 
 `detect` also takes an iterable of `HxWx3` uint8 frames in BGR order instead of a path, and
 `cut=` / `fade=` thresholds (defaults 0.7 and 0.8, the rule used for every number below).
@@ -101,8 +107,8 @@ const { shots, transitions } = await detect(input.files[0]);
 const { shots, transitions } = await detect("video.mp4");
 ```
 
-On 8 test videos the Node build and the Python package each found 527 transitions (4 found by
-only one of them), at 1,728 and 2,317 frames per second end to end on a laptop CPU. The browser
+On 8 test videos the Node build and the Python package each found 527 transitions (4 found only
+by Python and 4 only by Node), at 1,728 and 2,317 frames per second end to end on a laptop CPU. The browser
 build found 545
 where Node found 546 on 9 videos, at about 700 frames per second on WebGPU. Its README has
 both comparisons.
@@ -152,7 +158,9 @@ the CPU. The model alone runs at about 4,900 frames per second; TransNet V2 at 1
 ## Weights
 
 The package ships one set of weights (1.6 MB, sha256 `b0d1cc2a77f8aa91…`, research run
-`seqnet_w05_seed2`). It was trained on synthetic transitions built from single-shot
+`seqnet_w05_seed2`), and the same weights as the two ONNX graphs that run on the CPU by default
+(`features.onnx` and `head.onnx`, 1.6 MB together; `js/scripts/export_onnx.py` writes them from
+the `.pt` file, for this package and the npm package). It was trained on synthetic transitions built from single-shot
 skateboarding clips, ClipShots training videos, and 1,245 hand labels on skateboarding videos.
 The hand labels are in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md), as YouTube ids and frame indices. The
 clips behind the synthetic transitions are not released.
@@ -212,7 +220,7 @@ distributed, so bring your own to train.
   rate, so they drift on variable-frame-rate files; frame indices are exact.
 - `--device mps` is not the default on Apple hardware: a process that fed MPS many different
   input lengths kept growing in memory in our runs. On the CPU the default is faster anyway.
-- Decoding is the limit on high-resolution video (about 450 frames/s for 4K H.264 on an M1 Pro):
+- Decoding is the limit on high-resolution video (419 frames/s for 4K H.264 on an M1 Pro):
   OpenCV decodes in software and converts each full frame to color before it is shrunk. The
   browser build, which decodes on the media engine, does not have this limit.
 

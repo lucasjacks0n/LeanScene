@@ -201,7 +201,7 @@ def frame_probs(source: Source, model: Optional[Model] = None, device=None, batc
     ctx = max(64, model.receptive_field // 2 + 1)
 
     out: list[np.ndarray] = []
-    chunks: list = []  # features not yet labelled; the first `done` rows are left context
+    chunks: list = []  # features not yet labeled; the first `done` rows are left context
     held, done, seen = 0, 0, 0
 
     def label(final: bool) -> None:
@@ -242,7 +242,7 @@ def label_frames(probs: np.ndarray, cut: float = CUT_THRESHOLD, fade: float = FA
 
 @dataclass(frozen=True)
 class Transition:
-    """A maximal run of frames not labelled same. start and end are inclusive frame indices.
+    """A maximal run of frames not labeled same. start and end are inclusive frame indices.
 
     kind is "cut" when the run holds no fade frame, else "gradual". For a cut, `end` is the
     first frame of the new shot; start < end only when a few junk frames sit between two shots.
