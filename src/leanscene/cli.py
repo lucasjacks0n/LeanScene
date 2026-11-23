@@ -84,7 +84,7 @@ def main(argv=None) -> int:
                     help="table: one row per shot (default). json: shots and transitions. csv: one row per shot")
     ap.add_argument("-o", "--output", help="write to this file instead of standard output")
     ap.add_argument("--model", default="leanscene", help="a checkpoint path, to use weights other than the bundled ones")
-    ap.add_argument("--device", help="cpu, cuda or mps (default: cuda when available, else cpu)")
+    ap.add_argument("--device", help="cpu, cuda or mps (default: cuda when available, else the CPU, on ONNX Runtime)")
     ap.add_argument("--cut", type=float, default=CUT_THRESHOLD, help=f"cut threshold (default {CUT_THRESHOLD})")
     ap.add_argument("--fade", type=float, default=FADE_THRESHOLD, help=f"gradual-transition threshold (default {FADE_THRESHOLD})")
     ap.add_argument("--probs", metavar="FILE.npy",

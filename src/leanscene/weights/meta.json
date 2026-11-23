@@ -1,0 +1,11 @@
+{
+ "checkpoint": "leanscene",
+ "dim": 896,
+ "feat": 128,
+ "size": 100,
+ "histBins": 4,
+ "receptiveField": 63,
+ "cut": 0.7,
+ "fade": 0.8,
+ "close": 8
+}

@@ -206,15 +206,20 @@ and npm packages' probabilities differ by at most 0.000003. The decoders differ:
 resizes frames with OpenCV, Node with ffmpeg and the browser with a canvas, which do not
 produce the same pixels. Frame counts and frame indices are the same.
 
-**Node against Python**, measured on 2026-11-18 with `scripts/parity.py` on 8 skateboarding
-videos (71,507 frames; H.264, AV1 and VP9; 360p to 720p), Apple M1 Pro, ffmpeg 7.1.1, CPU:
+**Node against Python**, measured on 2026-11-23 with `scripts/parity.py` on 8 skateboarding
+videos (71,507 frames; H.264, AV1 and VP9; 360p to 720p), Apple M1 Pro, ffmpeg 7.1.1, OpenCV
+5.1.0, CPU, both on ONNX Runtime:
 
 | | Python | Node |
 |---|---|---|
 | Frames decoded | 71,507 | 71,507 (the same count on every video) |
-| Transitions found | 524 | 527 |
-| Found by one only (two-frame tolerance) | 3 | 6 |
-| Frames per second, end to end | 1,106 | 1,922 |
+| Transitions found | 527 | 527 |
+| Found by one only (two-frame tolerance) | 4 | 4 |
+| Frames per second, end to end | 2,317 | 1,728 |
+
+An earlier run (2026-11-18, Python on PyTorch and OpenCV 5.0.0) gave Python 524 transitions at
+1,106 frames/s. The Python count moved with the OpenCV version, which decodes a few frames
+differently; with the same OpenCV, Python's PyTorch and ONNX Runtime paths gave the same 527.
 
 **Browser against Node**, measured on 2026-11-22 with `scripts/browser_parity.mjs` on 9 videos
 (the 8 above and the demo's sample; 72,707 frames), headless Chrome on the same machine:

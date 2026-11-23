@@ -101,8 +101,9 @@ const { shots, transitions } = await detect(input.files[0]);
 const { shots, transitions } = await detect("video.mp4");
 ```
 
-On 8 test videos the Node build found 527 transitions where the Python package found 524, at
-1,922 frames per second end to end on a laptop CPU against 1,106. The browser build found 545
+On 8 test videos the Node build and the Python package each found 527 transitions (4 found by
+only one of them), at 1,728 and 2,317 frames per second end to end on a laptop CPU. The browser
+build found 545
 where Node found 546 on 9 videos, at about 700 frames per second on WebGPU. Its README has
 both comparisons.
 
@@ -122,9 +123,9 @@ F1 over transitions with TransNet V2's own protocol (two-frame tolerance). Both 
 through the same decoding and scoring code, and LeanScene's decision rule was fixed before the
 test sets were scored.
 
-It is fast as well as small. On an Apple M1 Pro the full-width model alone runs at 1,225
-frames/s on the CPU and 3,947 on the GPU, against 159 for TransNet V2 on the CPU. The shipped
-model does about a third of the full-width model's operations.
+It is fast as well as small. On an Apple M1 Pro the `leanscene` command reads a 91-minute
+720p film (131,720 frames) in 51 seconds, about 2,600 frames per second, decoding included, on
+the CPU. The model alone runs at about 4,900 frames per second; TransNet V2 at 167.
 
 <details>
 <summary>Fine print</summary>
@@ -138,9 +139,13 @@ model does about a third of the full-width model's operations.
   depends on the hand labels in [`labels/`](https://github.com/lucasjacks0n/LeanScene/blob/main/labels/README.md): trained without them, the
   full-width model scores 95.4 on BBC, 80.0 on ClipShots and 93.2 on RAI (mean of 3 seeds).
 - The test sets were looked at during development.
-- Speeds are model only (8 threads, 6,000 frames, decoding excluded); LeanScene's CPU figure is
-  with batches of 8 frames (570 frames/s with batches of 512). They were measured on the
-  full-width model; the shipped model has not been timed yet, and no CUDA timing has been measured.
+- Speeds: one run each on an Apple M1 Pro, CPU only. End to end, the speed depends on the video
+  more than on the model, because every frame is decoded at full size before it is shrunk:
+  2,574 frames/s on the 720p H.264 film above, 1,132 on 1080p H.264, 837 on 1080p HEVC and 419
+  on 4K H.264. The model-alone figures are on pre-decoded 100x100 frames (ONNX Runtime; the
+  same model on PyTorch runs at about 2,000; TransNet V2's figure is from the paper's
+  timing). Before this version the command ran the same film at 1,165 frames/s. No CUDA timing
+  has been measured.
 
 </details>
 
@@ -166,7 +171,15 @@ their change since the previous frame, and labels every frame *same*, *cut* or *
 
 The video is streamed, so memory stays flat on long files: frames are encoded in batches and
 the head runs over 4,096 frames at a time with 64 frames of context on each side, which gives
-the same output as a single pass.
+the same output as a single pass. A file is decoded in a background thread while the model
+runs on the previous batch.
+
+On the CPU the network runs on ONNX Runtime, from the two graphs in `src/leanscene/weights/`
+(the same files as the npm package's). That is about twice as fast as PyTorch for a network
+this small, and gives the same transitions: on the film above every shot and transition was
+identical and per-frame probabilities differed by at most 0.000003. PyTorch is used for a
+checkpoint file, for `--device cuda` or `mps`, with `load_model(backend="torch")`, and where
+ONNX Runtime has no wheel for the Python version.
 
 ## Labels
 
@@ -198,7 +211,10 @@ distributed, so bring your own to train.
 - Videos are decoded with OpenCV. Times are frame index divided by the container's frame
   rate, so they drift on variable-frame-rate files; frame indices are exact.
 - `--device mps` is not the default on Apple hardware: a process that fed MPS many different
-  input lengths kept growing in memory in our runs.
+  input lengths kept growing in memory in our runs. On the CPU the default is faster anyway.
+- Decoding is the limit on high-resolution video (about 450 frames/s for 4K H.264 on an M1 Pro):
+  OpenCV decodes in software and converts each full frame to color before it is shrunk. The
+  browser build, which decodes on the media engine, does not have this limit.
 
 ## Development
 
@@ -209,7 +225,9 @@ python3 -m venv .venv
 ```
 
 `.venv/` is about 1 GB (mostly PyTorch), is gitignored, and is safe to delete; the two commands
-above recreate it. The `export` extra is only needed for `demo/export_onnx.py`.
+above recreate it. The `export` extra is only needed for `demo/export_onnx.py` and
+`js/scripts/export_onnx.py`; the second writes the ONNX graphs to both `js/weights/` and
+`src/leanscene/weights/`, and a test checks the two copies are identical.
 
 ## Citation
 

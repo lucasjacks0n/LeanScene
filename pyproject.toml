@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leanscene"
-version = "0.1.1"
+version = "0.2.0"
 description = "Fast shot transition detection in 0.39M parameters: higher F1 than TransNet V2 on its three benchmarks, with 115x fewer operations"
 readme = "README.md"
 license = "MIT"
@@ -19,6 +19,8 @@ classifiers = [
 ]
 dependencies = [
     "numpy",
+    # the default model runtime on the CPU; where it has no wheel yet, PyTorch is used instead
+    "onnxruntime>=1.17; python_version < '3.15'",
     "opencv-python-headless",
     "torch>=2.0",
 ]
@@ -37,7 +39,7 @@ Repository = "https://github.com/lucasjacks0n/LeanScene"
 where = ["src"]
 
 [tool.setuptools.package-data]
-leanscene = ["weights/*.pt"]
+leanscene = ["weights/*.pt", "weights/*.onnx", "weights/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

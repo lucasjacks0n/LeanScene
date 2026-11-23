@@ -27,12 +27,12 @@ def video():
 
 @pytest.fixture(scope="module")
 def model():
-    return leanscene.load_model(device="cpu")
+    return leanscene.load_model(device="cpu", backend="torch")
 
 
 @pytest.mark.parametrize("name", sorted(leanscene.MODELS))
 def test_bundled_weights_load(name):
-    m = leanscene.load_model(name, device="cpu")
+    m = leanscene.load_model(name, device="cpu", backend="torch")
     assert sum(p.numel() for p in m.parameters()) == 394_575  # the paper's half-width model
     assert m.receptive_field == 63
 
@@ -97,3 +97,111 @@ def test_progress_reports_every_frame(model):
     seen = []
     r = leanscene.detect(video(), model=model, progress=seen.append)
     assert seen == sorted(seen) and seen[-1] == r.frames == 130
+
+
+# ---- ONNX Runtime, the default on the CPU, against PyTorch
+
+onnx = pytest.mark.skipif(not leanscene.fast.available(), reason="onnxruntime is not installed")
+
+
+@pytest.fixture(scope="module")
+def onnx_model():
+    return leanscene.load_model(device="cpu", backend="onnx")
+
+
+def write_video(path, frames, fps=25):
+    w = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (frames[0].shape[1], frames[0].shape[0]))
+    if not w.isOpened():
+        pytest.skip("this OpenCV build cannot write mp4")
+    for f in frames:
+        w.write(f)
+    w.release()
+    return str(path)
+
+
+@onnx
+def test_the_default_on_the_cpu_is_onnx_runtime():
+    if torch.cuda.is_available():
+        pytest.skip("CUDA is the default device here")
+    assert isinstance(leanscene.load_model(), leanscene.OnnxModel)
+    assert isinstance(leanscene.load_model(device="cpu"), leanscene.OnnxModel)
+
+
+@onnx
+def test_onnx_gives_the_same_probabilities_as_pytorch(model, onnx_model):
+    frames = [cv2.resize(f, (100, 100)) for f in video() * 3]
+    a = leanscene.frame_probs(frames, model=model)
+    b = leanscene.frame_probs(frames, model=onnx_model, batch=7, window=50)
+    assert np.abs(a - b).max() < 1e-4
+    assert leanscene.find_transitions(leanscene.label_frames(a)) == leanscene.find_transitions(leanscene.label_frames(b))
+
+
+def test_the_fast_histogram_equals_the_model_s():
+    rng = np.random.default_rng(0)
+    frames = rng.integers(0, 256, (6, 100, 100, 3), dtype=np.uint8)
+    frames[0] = np.tile(np.arange(256, dtype=np.uint8), 118)[:30000].reshape(100, 100, 3)  # every byte value
+    x = torch.from_numpy(frames).permute(0, 3, 1, 2).float().div(255)
+    assert np.array_equal(leanscene.fast.color_hist(frames), leanscene.model.color_hist(x).numpy())
+
+
+@onnx
+def test_a_file_decoded_in_a_thread_gives_what_frames_in_this_thread_give(tmp_path, model, onnx_model):
+    path = write_video(tmp_path / "clip.mp4", video())
+    cap, frames = cv2.VideoCapture(path), []
+    while True:
+        ok, f = cap.read()
+        if not ok:
+            break
+        frames.append(f)
+    cap.release()
+    for m in (model, onnx_model):
+        assert np.array_equal(leanscene.frame_probs(path, model=m), leanscene.frame_probs(frames, model=m))
+
+
+@onnx
+def test_errors_in_the_decoder_thread_reach_the_caller(tmp_path, onnx_model):
+    with pytest.raises(FileNotFoundError):
+        leanscene.detect(str(tmp_path / "missing.mp4"), model=onnx_model)
+    not_a_video = tmp_path / "x.mp4"
+    not_a_video.write_bytes(b"not a video")
+    with pytest.raises(ValueError):
+        leanscene.detect(str(not_a_video), model=onnx_model)
+
+
+def test_the_decoder_thread_stops_when_the_caller_stops():
+    import threading
+
+    def frames():
+        for i in range(10_000):
+            yield np.zeros((100, 100, 3), np.uint8)
+
+    import importlib
+
+    gen = importlib.import_module("leanscene.detect")._prefetch(frames(), batch=4, depth=2)
+    next(gen)
+    gen.close()  # the caller gives up early
+    assert not any(t.name == "leanscene-decoder" and t.is_alive() for t in threading.enumerate())
+
+
+@onnx
+def test_backend_choices(onnx_model):
+    with pytest.raises(ValueError):
+        leanscene.load_model(__file__, backend="onnx")  # a checkpoint file: PyTorch only
+    with pytest.raises(ValueError):
+        leanscene.load_model(device="mps", backend="onnx")
+    with pytest.raises(ValueError):
+        leanscene.load_model(backend="tensorflow")
+    with pytest.raises(ValueError):
+        leanscene.frame_probs([], model=onnx_model, device="mps")
+
+
+def test_the_onnx_weights_are_the_npm_package_s():
+    import pathlib
+    from importlib import resources
+
+    js = pathlib.Path(__file__).resolve().parent.parent / "js" / "weights"
+    if not js.exists():
+        pytest.skip("not in the repository")
+    here = resources.files("leanscene") / "weights"
+    for name in ("features.onnx", "head.onnx", "meta.json"):
+        assert (here / name).read_bytes() == (js / name).read_bytes(), name
