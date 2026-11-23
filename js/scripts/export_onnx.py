@@ -1,4 +1,5 @@
-"""Export the bundled LeanScene weights for the npm package (js/weights/).
+"""Export the bundled LeanScene weights for the npm package (js/weights/) and the Python
+package's ONNX Runtime backend (src/leanscene/weights/, the same files).
 
     python js/scripts/export_onnx.py [checkpoint.pt]
 
@@ -77,6 +78,12 @@ with open(os.path.join(OUT, "meta.json"), "w") as fh:
     json.dump(meta, fh, indent=1)
     fh.write("\n")
 print(f"wrote js/weights: features.onnx {nf / 1e6:.2f} MB, head.onnx {nh / 1e6:.2f} MB, feature dim {meta['dim']}")
+# The Python package runs the same graphs on ONNX Runtime by default (leanscene.fast): same files.
+import shutil
+PY = os.path.join(os.path.dirname(os.path.dirname(OUT)), "src", "leanscene", "weights")
+for f in ("features.onnx", "head.onnx", "meta.json"):
+    shutil.copyfile(os.path.join(OUT, f), os.path.join(PY, f))
+print("copied them to src/leanscene/weights")
 
 sf, sh = ort.InferenceSession(fp), ort.InferenceSession(hp)
 ff = np.concatenate([sf.run(None, {"x": check[i:i + 16].numpy()})[0] for i in range(0, 300, 16)])
