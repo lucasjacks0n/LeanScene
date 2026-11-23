@@ -25,7 +25,7 @@ from leanscene.model import FRAME_SIZE, HIST_BINS, color_hist
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "weights")
 name = sys.argv[1] if len(sys.argv) > 1 else "leanscene"
-m = leanscene.load_model(name, "cpu")
+m = leanscene.load_model(name, "cpu", backend="torch")  # exports from the PyTorch module
 assert m.spatial and m.feat == 128, "the package covers the default architecture only"
 S = FRAME_SIZE
 with torch.no_grad():

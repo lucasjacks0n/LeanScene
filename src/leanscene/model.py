@@ -42,7 +42,7 @@ class LeanScene(nn.Module):
     change since the previous frame, and runs residual dilated 1D convolutions over the
     sequence.
 
-    A cut is labelled on the first frame of the new shot; fade marks the frames inside a
+    A cut is labeled on the first frame of the new shot; fade marks the frames inside a
     gradual transition.
     """
 
